@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react"
 import { Link, useParams } from "react-router-dom"
+import Navbar from "../components/Navbar"
 import { clubs, players, games, teamStats } from "../data/mockData"
 
 type TabKey = "schedule" | "roster" | "player-stats" | "team-stats"
@@ -20,14 +21,27 @@ export default function ClubDetailPage() {
 
   if (!club) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-lg text-gray-600">Club not found</p>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4">
+          <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
+            <p className="text-lg font-medium text-gray-700">Club not found</p>
+            <Link
+              to="/"
+              className="mt-4 inline-block rounded-xl bg-red-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-800"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar />
+
       <div className="relative h-64 overflow-hidden">
         <img
           src={club.bannerImage}
@@ -54,7 +68,21 @@ export default function ClubDetailPage() {
               </div>
             </div>
 
-            
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to={`/clubs/${club.id}/submit-stats`}
+                className="rounded-xl bg-red-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-800"
+              >
+                Submit Stats
+              </Link>
+
+              <Link
+                to={`/dashboard/club/${club.id}`}
+                className="rounded-xl border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
+              >
+                Officer Dashboard
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -205,7 +233,8 @@ export default function ClubDetailPage() {
                     <MiniStat
                       label="Rebounds"
                       value={
-                        "rebounds" in player.stats && typeof player.stats.rebounds === "number"
+                        "rebounds" in player.stats &&
+                        typeof player.stats.rebounds === "number"
                           ? player.stats.rebounds
                           : 0
                       }

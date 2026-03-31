@@ -1,30 +1,6 @@
 import Navbar from "../components/Navbar"
 import ClubCard from "../components/ClubCard"
-import type { Club } from "../types/club"
-
-const clubs: Club[] = [
-  {
-    id: "mens-basketball",
-    name: "Men's Basketball",
-    description: "Competitive club basketball team competing in regional tournaments.",
-    members: 15,
-    image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    id: "mens-soccer",
-    name: "Men's Soccer",
-    description: "RPI's premier soccer club with a strong competitive history.",
-    members: 22,
-    image: "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    id: "womens-volleyball",
-    name: "Women's Volleyball",
-    description: "High-energy volleyball team competing at the collegiate club level.",
-    members: 18,
-    image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=1200&q=80",
-  },
-]
+import { clubs } from "../data/mockData"
 
 export default function Home() {
   return (

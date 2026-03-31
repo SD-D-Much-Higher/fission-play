@@ -1,7 +1,22 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useState } from "react"
 import Navbar from "../components/Navbar"
 
 export default function SignUp() {
+  const navigate = useNavigate()
+
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [clubId, setClubId] = useState("mens-basketball")
+  const [roleRequest, setRoleRequest] = useState("club-member")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    navigate("/request-submitted")
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -15,7 +30,7 @@ export default function SignUp() {
             </p>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor="fullName"
@@ -27,6 +42,8 @@ export default function SignUp() {
                 id="fullName"
                 type="text"
                 placeholder="John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base outline-none transition focus:border-red-600 focus:bg-white"
               />
             </div>
@@ -42,6 +59,8 @@ export default function SignUp() {
                 id="email"
                 type="email"
                 placeholder="student@rpi.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base outline-none transition focus:border-red-600 focus:bg-white"
               />
             </div>
@@ -55,12 +74,10 @@ export default function SignUp() {
               </label>
               <select
                 id="club"
-                defaultValue=""
+                value={clubId}
+                onChange={(e) => setClubId(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
               >
-                <option value="" disabled>
-                  Select your club
-                </option>
                 <option value="mens-basketball">Men&apos;s Basketball</option>
                 <option value="mens-soccer">Men&apos;s Soccer</option>
                 <option value="womens-volleyball">Women&apos;s Volleyball</option>
@@ -79,7 +96,8 @@ export default function SignUp() {
               </label>
               <select
                 id="roleRequest"
-                defaultValue="club-member"
+                value={roleRequest}
+                onChange={(e) => setRoleRequest(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
               >
                 <option value="club-member">Club Member</option>
@@ -101,6 +119,8 @@ export default function SignUp() {
                 id="password"
                 type="password"
                 placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base outline-none transition focus:border-red-600 focus:bg-white"
               />
             </div>
@@ -116,6 +136,8 @@ export default function SignUp() {
                 id="confirmPassword"
                 type="password"
                 placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base outline-none transition focus:border-red-600 focus:bg-white"
               />
             </div>

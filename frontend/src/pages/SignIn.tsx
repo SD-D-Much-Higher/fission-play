@@ -1,7 +1,33 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useState } from "react"
 import Navbar from "../components/Navbar"
 
 export default function SignIn() {
+  const navigate = useNavigate()
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [role, setRole] = useState("club-member")
+  const [clubId, setClubId] = useState("mens-basketball")
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (role === "club-member") {
+      navigate(`/clubs/${clubId}`)
+      return
+    }
+
+    if (role === "officer") {
+      navigate(`/dashboard/club/${clubId}`)
+      return
+    }
+
+    if (role === "admin") {
+      navigate("/admin")
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -15,7 +41,7 @@ export default function SignIn() {
             </p>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor="email"
@@ -27,6 +53,8 @@ export default function SignIn() {
                 id="email"
                 type="email"
                 placeholder="student@rpi.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base outline-none transition focus:border-red-600 focus:bg-white"
               />
             </div>
@@ -42,8 +70,32 @@ export default function SignIn() {
                 id="password"
                 type="password"
                 placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base outline-none transition focus:border-red-600 focus:bg-white"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="club"
+                className="mb-2 block text-base font-semibold text-gray-900"
+              >
+                Club
+              </label>
+              <select
+                id="club"
+                value={clubId}
+                onChange={(e) => setClubId(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
+              >
+                <option value="mens-basketball">Men&apos;s Basketball</option>
+                <option value="mens-soccer">Men&apos;s Soccer</option>
+                <option value="womens-volleyball">Women&apos;s Volleyball</option>
+                <option value="club-baseball">Club Baseball</option>
+                <option value="badminton">Badminton Club</option>
+                <option value="judo">Judo Club</option>
+              </select>
             </div>
 
             <div>
@@ -55,12 +107,13 @@ export default function SignIn() {
               </label>
               <select
                 id="role"
-                defaultValue="student"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
               >
                 <option value="club-member">Club Member</option>
                 <option value="officer">Club Officer</option>
-                <option value="admin">Admin</option>
+                <option value="admin">Universal Admin</option>
               </select>
             </div>
 
