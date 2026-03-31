@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import type { Club } from "../types/club"
 
 type ClubCardProps = {
@@ -8,7 +9,7 @@ export default function ClubCard({ club }: ClubCardProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       <img
-        src={club.image}
+        src={club.image || club.bannerImage}
         alt={club.name}
         className="h-56 w-full object-cover"
       />
@@ -18,9 +19,12 @@ export default function ClubCard({ club }: ClubCardProps) {
         <p className="mb-4 text-gray-600">{club.description}</p>
         <p className="mb-4 text-sm text-gray-500">{club.members} members</p>
 
-        <button className="w-full rounded-xl bg-red-700 px-4 py-3 font-semibold text-white hover:bg-red-800">
+        <Link
+          to={`/clubs/${club.id}`}
+          className="block w-full rounded-xl bg-red-700 px-4 py-3 text-center font-semibold text-white hover:bg-red-800"
+        >
           View Club
-        </button>
+        </Link>
       </div>
     </div>
   )

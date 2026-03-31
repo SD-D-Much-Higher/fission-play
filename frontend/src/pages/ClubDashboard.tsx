@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
-import { useParams } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import { Calendar, CheckCircle2, Clock3, Edit, Plus, Trash2, XCircle } from "lucide-react"
+import Navbar from "../components/Navbar"
 import { clubs, players, games, teamStats } from "../data/mockData.ts"
 
 // Temporary mock user until auth is connected
@@ -68,14 +69,19 @@ export default function ClubDashboardPage() {
 
   if (!club) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-lg text-gray-600">Club not found</p>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4">
+          <p className="text-lg text-gray-600">Club not found</p>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
       <div className="relative h-64 overflow-hidden">
         <img
           src={club.bannerImage}
