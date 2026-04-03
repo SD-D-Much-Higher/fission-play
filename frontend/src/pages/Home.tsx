@@ -25,10 +25,10 @@ export default function Home() {
       <main className="mx-auto max-w-7xl px-6 py-10">
         <section className="mb-10 text-center">
           <h1 className="mb-3 text-5xl font-extrabold text-gray-900">
-            Featured Clubs
+            Featured Teams
           </h1>
           <p className="text-lg text-gray-600">
-            Discover the vibrant club sports community at RPI
+            Discover the vibrant club sports community at RPI.
           </p>
         </section>
 
@@ -42,7 +42,7 @@ export default function Home() {
           }
         />
 
-        {hasQuery && (
+        {hasQuery && filteredClubs.length > 0 && (
           <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-2xl font-bold text-gray-900">Team Matches</h2>
             {filteredClubs.length === 0 ? (
@@ -71,7 +71,7 @@ export default function Home() {
           </section>
         )}
 
-        {hasQuery && (
+        {hasQuery && filteredPlayers.length > 0 && (
           <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-2xl font-bold text-gray-900">Player Matches</h2>
             {filteredPlayers.length === 0 ? (
@@ -102,18 +102,13 @@ export default function Home() {
           </section>
         )}
 
-        {hasQuery && filteredClubs.length === 0 && filteredPlayers.length === 0 && (
-          <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
-            <p className="text-lg font-medium text-gray-700">No results found.</p>
-            <p className="mt-2 text-gray-500">Try another team name, sport, or player.</p>
-          </section>
-        )}
-
+        {!hasQuery && (
         <section className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           {filteredClubs.map((club) => (
             <ClubCard key={club.id} club={club} />
           ))}
         </section>
+        )}
       </main>
     </div>
   )

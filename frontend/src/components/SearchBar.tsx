@@ -24,7 +24,7 @@ export default function SearchBar({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-900 outline-none transition focus:border-red-600"
+        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-base text-gray-900 outline-none transition focus:border-red-600"
       />
       {summaryText && <p className="mt-3 text-sm text-gray-500">{summaryText}</p>}
     </section>

@@ -32,20 +32,19 @@ export default function PlayerDetail() {
       <Navbar />
 
       <main className="mx-auto max-w-4xl px-4 py-12">
-        <div className="mb-6">
-          <Link
-            to={team ? `/clubs/${team.id}` : "/"}
-            className="text-sm font-medium text-red-600 hover:text-red-700"
-          >
-            ← Back to Team
-          </Link>
-        </div>
-
         <section className="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-wide text-gray-500">Player Profile</p>
-          <h1 className="mt-2 text-4xl font-bold text-gray-900">{player.name}</h1>
+          <h1 className="mt-2 text-4xl font-bold text-gray-900">
+            {player.name.split(" ")[0] + " "}
+            <a className="text-red-700">{player.name.split(" ").slice(1).join(" ")}</a>
+          </h1>
           <p className="mt-2 text-lg text-gray-600">
-            #{player.number} • {player.position} • {team?.name ?? "Unknown Team"}
+            #{player.number} • {player.position} • {" "}
+            {team ? (
+              <Link className="hover:underline" to={`/teams/${team.id}`}>
+                {team.name + " ↗"}
+              </Link>
+            ) : null}
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
