@@ -4,42 +4,19 @@ import Navbar from "../components/Navbar"
 import ClubCard from "../components/ClubCard"
 import SearchBar from "../components/SearchBar"
 import { clubs, players } from "../data/mockData"
+import { searchPlayers, searchTeams } from "../services/searchService"
 
 export default function Home() {
   const [query, setQuery] = useState("")
-
-  const normalizedQuery = query.trim().toLowerCase()
+  const hasQuery = query.trim().length > 0
 
   const filteredClubs = useMemo(() => {
-    if (!normalizedQuery) return clubs
-    return clubs.filter((club) => {
-      return (
-        club.name.toLowerCase().includes(normalizedQuery) ||
-        club.sport.toLowerCase().includes(normalizedQuery) ||
-        club.description.toLowerCase().includes(normalizedQuery)
-      )
-    })
-  }, [normalizedQuery])
+    return searchTeams(clubs, query)
+  }, [query])
 
   const filteredPlayers = useMemo(() => {
-    if (!normalizedQuery) return []
-    return players
-      .filter((player) => {
-        const clubName = clubs.find((club) => club.id === player.clubId)?.name ?? ""
-        return (
-          player.name.toLowerCase().includes(normalizedQuery) ||
-          player.position.toLowerCase().includes(normalizedQuery) ||
-          clubName.toLowerCase().includes(normalizedQuery)
-        )
-      })
-      .map((player) => {
-        const club = clubs.find((item) => item.id === player.clubId)
-        return {
-          ...player,
-          clubName: club?.name ?? "Unknown Club",
-        }
-      })
-  }, [normalizedQuery])
+    return searchPlayers(players, clubs, query)
+  }, [query])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,13 +36,13 @@ export default function Home() {
           value={query}
           onChange={setQuery}
           summaryText={
-            normalizedQuery
-              ? `${filteredClubs.length} team match(es), ${filteredPlayers.length} player match(es)`
+            hasQuery
+              ? `${filteredClubs.length} team match${filteredClubs.length === 1 ? "" : "es"}, ${filteredPlayers.length} player match${filteredPlayers.length === 1 ? "" : "es"}`
               : undefined
           }
         />
 
-        {normalizedQuery && (
+        {hasQuery && (
           <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-2xl font-bold text-gray-900">Team Matches</h2>
             {filteredClubs.length === 0 ? (
@@ -94,7 +71,7 @@ export default function Home() {
           </section>
         )}
 
-        {normalizedQuery && (
+        {hasQuery && (
           <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-2xl font-bold text-gray-900">Player Matches</h2>
             {filteredPlayers.length === 0 ? (
@@ -109,7 +86,7 @@ export default function Home() {
                     <div>
                       <p className="font-semibold text-gray-900">{player.name}</p>
                       <p className="text-sm text-gray-500">
-                        {player.position} - {player.clubName}
+                        {player.position} - {player.teamName}
                       </p>
                     </div>
                     <Link
@@ -125,7 +102,7 @@ export default function Home() {
           </section>
         )}
 
-        {normalizedQuery && filteredClubs.length === 0 && filteredPlayers.length === 0 && (
+        {hasQuery && filteredClubs.length === 0 && filteredPlayers.length === 0 && (
           <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
             <p className="text-lg font-medium text-gray-700">No results found.</p>
             <p className="mt-2 text-gray-500">Try another team name, sport, or player.</p>
