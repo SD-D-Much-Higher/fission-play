@@ -4,10 +4,16 @@ A project created with FastAPI CLI.
 
 ## Quick Start
 
+## Running with docker
+
+```bash
+docker compose up -d
+```
+
 ### Start the development server
 
 ```bash
-uv run fastapi dev
+uv run fastapi dev main.py
 ```
 
 Visit http://localhost:8000
