@@ -6,7 +6,8 @@ services:
     ports:
       - "80:80"
     environment:
-      MONGODB_URL: mongodb://mongo:27017/appdb
+      MONGO_URI: mongodb://mongo:27017
+      DB_NAME: appdb
     depends_on:
       - mongo
     volumes:
