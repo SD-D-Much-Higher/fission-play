@@ -7,8 +7,8 @@ export default function SignUp() {
 
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
-  const [clubId, setClubId] = useState("mens-basketball")
-  const [roleRequest, setRoleRequest] = useState("club-member")
+  const [teamId, setTeamId] = useState("mens-basketball")
+  const [roleRequest, setRoleRequest] = useState("team-member")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
 
@@ -24,9 +24,9 @@ export default function SignUp() {
       <main className="flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-xl rounded-3xl border border-gray-200 bg-white p-8 shadow-sm">
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-gray-900">Create Club Account</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Create Team Account</h1>
             <p className="mt-3 text-lg text-gray-500">
-              Register to submit stats and manage activity for your club
+              Register to submit stats and manage activity for your team
             </p>
           </div>
 
@@ -67,15 +67,15 @@ export default function SignUp() {
 
             <div>
               <label
-                htmlFor="club"
+                htmlFor="team"
                 className="mb-2 block text-base font-semibold text-gray-900"
               >
-                Club
+                Team
               </label>
               <select
-                id="club"
-                value={clubId}
-                onChange={(e) => setClubId(e.target.value)}
+                id="team"
+                value={teamId}
+                onChange={(e) => setTeamId(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
               >
                 <option value="mens-basketball">Men&apos;s Basketball</option>
@@ -100,7 +100,7 @@ export default function SignUp() {
                 onChange={(e) => setRoleRequest(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
               >
-                <option value="club-member">Club Member</option>
+                <option value="team-member">Team Member</option>
                 <option value="officer-request">Officer Request</option>
               </select>
               <p className="mt-2 text-sm text-gray-500">
@@ -167,7 +167,7 @@ export default function SignUp() {
 
           <div className="mt-8 space-y-4 text-center">
             <p className="text-sm text-gray-500">
-              Public users can browse clubs and schedules without creating an account.
+              Public users can browse teams and schedules without creating an account.
             </p>
 
             <p className="text-lg text-gray-500">

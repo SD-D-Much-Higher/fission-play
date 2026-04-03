@@ -1,9 +1,10 @@
-export const clubs = [
+export const teams = [
   {
     id: "mens-basketball",
     name: "Men's Basketball",
     description: "Competitive club basketball team representing RPI.",
     sport: "Basketball",
+    gender: "Men",
     members: 18,
     image:
       "https://images.unsplash.com/photo-1546519638-68e109acd27d?auto=format&fit=crop&w=1200&q=80",
@@ -15,6 +16,7 @@ export const clubs = [
     name: "Men's Soccer",
     description: "RPI's premier soccer club with a strong competitive history.",
     sport: "Soccer",
+    gender: "Men",
     members: 22,
     image:
       "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&w=1200&q=80",
@@ -26,6 +28,7 @@ export const clubs = [
     name: "Women's Volleyball",
     description: "High-energy volleyball team competing at the collegiate club level.",
     sport: "Volleyball",
+    gender: "Women",
     members: 18,
     image:
       "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=1200&q=80",
@@ -37,7 +40,7 @@ export const clubs = [
 export const players = [
   {
     id: "p1",
-    clubId: "mens-basketball",
+    teamId: "mens-basketball",
     name: "Jordan Banks",
     number: 12,
     position: "Guard",
@@ -51,7 +54,7 @@ export const players = [
   },
   {
     id: "p2",
-    clubId: "mens-basketball",
+    teamId: "mens-basketball",
     name: "Marcus Lee",
     number: 23,
     position: "Forward",
@@ -65,7 +68,7 @@ export const players = [
   },
   {
     id: "p3",
-    clubId: "mens-soccer",
+    teamId: "mens-soccer",
     name: "Ethan Cruz",
     number: 10,
     position: "Midfielder",
@@ -79,7 +82,7 @@ export const players = [
   },
   {
     id: "p4",
-    clubId: "mens-soccer",
+    teamId: "mens-soccer",
     name: "Noah Patel",
     number: 7,
     position: "Forward",
@@ -93,7 +96,7 @@ export const players = [
   },
   {
     id: "p5",
-    clubId: "womens-volleyball",
+    teamId: "womens-volleyball",
     name: "Maya Thompson",
     number: 5,
     position: "Setter",
@@ -107,7 +110,7 @@ export const players = [
   },
   {
     id: "p6",
-    clubId: "womens-volleyball",
+    teamId: "womens-volleyball",
     name: "Lila Chen",
     number: 14,
     position: "Outside Hitter",
@@ -124,7 +127,7 @@ export const players = [
 export const games = [
   {
     id: "g1",
-    clubId: "mens-basketball",
+    teamId: "mens-basketball",
     opponent: "Union College",
     date: "2026-03-20",
     time: "7:00 PM",
@@ -137,7 +140,7 @@ export const games = [
   },
   {
     id: "g2",
-    clubId: "mens-basketball",
+    teamId: "mens-basketball",
     opponent: "Siena Club Team",
     date: "2026-03-28",
     time: "6:00 PM",
@@ -145,7 +148,7 @@ export const games = [
   },
   {
     id: "g3",
-    clubId: "mens-soccer",
+    teamId: "mens-soccer",
     opponent: "Union College",
     date: "2026-03-22",
     time: "5:00 PM",
@@ -158,7 +161,7 @@ export const games = [
   },
   {
     id: "g4",
-    clubId: "mens-soccer",
+    teamId: "mens-soccer",
     opponent: "Skidmore Club Team",
     date: "2026-03-30",
     time: "4:00 PM",
@@ -166,7 +169,7 @@ export const games = [
   },
   {
     id: "g5",
-    clubId: "womens-volleyball",
+    teamId: "womens-volleyball",
     opponent: "RIT Club Volleyball",
     date: "2026-03-24",
     time: "6:30 PM",
@@ -179,7 +182,7 @@ export const games = [
   },
   {
     id: "g6",
-    clubId: "womens-volleyball",
+    teamId: "womens-volleyball",
     opponent: "Union College",
     date: "2026-03-29",
     time: "1:00 PM",

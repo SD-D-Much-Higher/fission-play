@@ -1,8 +1,8 @@
 import { Link, useParams } from "react-router-dom"
 import Navbar from "../components/Navbar"
-import { clubs, players } from "../data/mockData"
+import { teams, players } from "../data/mockData"
 
-export default function PlayerDetail() {
+export default function PlayerProfile() {
   const { playerId } = useParams()
   const player = players.find((item) => item.id === playerId)
 
@@ -25,7 +25,7 @@ export default function PlayerDetail() {
     )
   }
 
-  const team = clubs.find((club) => club.id === player.clubId)
+  const team = teams.find((item) => item.id === player.teamId)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -34,7 +34,7 @@ export default function PlayerDetail() {
       <main className="mx-auto max-w-4xl px-4 py-12">
         <div className="mb-6">
           <Link
-            to={team ? `/clubs/${team.id}` : "/"}
+            to={team ? `/teams/${team.id}` : "/"}
             className="text-sm font-medium text-red-600 hover:text-red-700"
           >
             ← Back to Team

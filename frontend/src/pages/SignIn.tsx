@@ -7,19 +7,19 @@ export default function SignIn() {
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState("club-member")
-  const [clubId, setClubId] = useState("mens-basketball")
+  const [role, setRole] = useState("team-member")
+  const [teamId, setTeamId] = useState("mens-basketball")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (role === "club-member") {
-      navigate(`/clubs/${clubId}`)
+    if (role === "team-member") {
+      navigate(`/teams/${teamId}`)
       return
     }
 
     if (role === "officer") {
-      navigate(`/dashboard/club/${clubId}`)
+      navigate(`/dashboard/team/${teamId}`)
       return
     }
 
@@ -78,15 +78,15 @@ export default function SignIn() {
 
             <div>
               <label
-                htmlFor="club"
+                htmlFor="team"
                 className="mb-2 block text-base font-semibold text-gray-900"
               >
-                Club
+                Team
               </label>
               <select
-                id="club"
-                value={clubId}
-                onChange={(e) => setClubId(e.target.value)}
+                id="team"
+                value={teamId}
+                onChange={(e) => setTeamId(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
               >
                 <option value="mens-basketball">Men&apos;s Basketball</option>
@@ -111,7 +111,7 @@ export default function SignIn() {
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
               >
-                <option value="club-member">Club Member</option>
+                <option value="team-member">Team Member</option>
                 <option value="officer">Club Officer</option>
                 <option value="admin">Universal Admin</option>
               </select>

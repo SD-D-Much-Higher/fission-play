@@ -3,7 +3,7 @@ import { useState } from "react"
 import Navbar from "../components/Navbar"
 
 export default function SubmitStats() {
-  const { clubId } = useParams()
+  const { teamId } = useParams()
   const navigate = useNavigate()
 
   const [playerName, setPlayerName] = useState("")
@@ -14,7 +14,7 @@ export default function SubmitStats() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    navigate(`/clubs/${clubId}`)
+    navigate(`/teams/${teamId}`)
   }
 
   return (
@@ -24,10 +24,10 @@ export default function SubmitStats() {
       <main className="mx-auto max-w-3xl px-4 py-12">
         <div className="mb-6">
           <Link
-            to={`/clubs/${clubId}`}
+            to={`/teams/${teamId}`}
             className="text-sm font-medium text-red-600 hover:text-red-700"
           >
-            ← Back to Club Page
+            ← Back to Team Page
           </Link>
         </div>
 

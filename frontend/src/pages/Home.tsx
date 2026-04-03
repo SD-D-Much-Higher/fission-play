@@ -1,22 +1,22 @@
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import Navbar from "../components/Navbar"
-import ClubCard from "../components/ClubCard"
+import TeamCard from "../components/TeamCard"
 import SearchBar from "../components/SearchBar"
-import { clubs, players } from "../data/mockData"
+import { teams, players } from "../data/mockData"
 
 export default function Home() {
   const [query, setQuery] = useState("")
 
   const normalizedQuery = query.trim().toLowerCase()
 
-  const filteredClubs = useMemo(() => {
-    if (!normalizedQuery) return clubs
-    return clubs.filter((club) => {
+  const filteredTeams = useMemo(() => {
+    if (!normalizedQuery) return teams
+    return teams.filter((team) => {
       return (
-        club.name.toLowerCase().includes(normalizedQuery) ||
-        club.sport.toLowerCase().includes(normalizedQuery) ||
-        club.description.toLowerCase().includes(normalizedQuery)
+        team.name.toLowerCase().includes(normalizedQuery) ||
+        team.sport.toLowerCase().includes(normalizedQuery) ||
+        team.description.toLowerCase().includes(normalizedQuery)
       )
     })
   }, [normalizedQuery])
@@ -25,18 +25,18 @@ export default function Home() {
     if (!normalizedQuery) return []
     return players
       .filter((player) => {
-        const clubName = clubs.find((club) => club.id === player.clubId)?.name ?? ""
+        const teamName = teams.find((team) => team.id === player.teamId)?.name ?? ""
         return (
           player.name.toLowerCase().includes(normalizedQuery) ||
           player.position.toLowerCase().includes(normalizedQuery) ||
-          clubName.toLowerCase().includes(normalizedQuery)
+          teamName.toLowerCase().includes(normalizedQuery)
         )
       })
       .map((player) => {
-        const club = clubs.find((item) => item.id === player.clubId)
+        const team = teams.find((item) => item.id === player.teamId)
         return {
           ...player,
-          clubName: club?.name ?? "Unknown Club",
+          teamName: team?.name ?? "Unknown Team",
         }
       })
   }, [normalizedQuery])
@@ -48,7 +48,7 @@ export default function Home() {
       <main className="mx-auto max-w-7xl px-6 py-10">
         <section className="mb-10 text-center">
           <h1 className="mb-3 text-5xl font-extrabold text-gray-900">
-            Featured Clubs
+            Featured Teams
           </h1>
           <p className="text-lg text-gray-600">
             Discover the vibrant club sports community at RPI
@@ -60,7 +60,7 @@ export default function Home() {
           onChange={setQuery}
           summaryText={
             normalizedQuery
-              ? `${filteredClubs.length} team match(es), ${filteredPlayers.length} player match(es)`
+              ? `${filteredTeams.length} team match(es), ${filteredPlayers.length} player match(es)`
               : undefined
           }
         />
@@ -72,17 +72,17 @@ export default function Home() {
               <p className="text-gray-500">No team matches found.</p>
             ) : (
               <div className="space-y-3">
-                {filteredClubs.map((club) => (
+                {filteredTeams.map((team) => (
                   <div
-                    key={club.id}
+                    key={team.id}
                     className="flex flex-col gap-2 rounded-xl border border-gray-200 p-4 md:flex-row md:items-center md:justify-between"
                   >
                     <div>
-                      <p className="font-semibold text-gray-900">{club.name}</p>
-                      <p className="text-sm text-gray-500">{club.sport}</p>
+                      <p className="font-semibold text-gray-900">{team.name}</p>
+                      <p className="text-sm text-gray-500">{team.sport}</p>
                     </div>
                     <Link
-                      to={`/clubs/${club.id}`}
+                      to={`/teams/${team.id}`}
                       className="inline-block rounded-lg bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-red-800"
                     >
                       View Team Profile
@@ -109,7 +109,7 @@ export default function Home() {
                     <div>
                       <p className="font-semibold text-gray-900">{player.name}</p>
                       <p className="text-sm text-gray-500">
-                        {player.position} - {player.clubName}
+                        {player.position} - {player.teamName}
                       </p>
                     </div>
                     <Link
@@ -125,7 +125,7 @@ export default function Home() {
           </section>
         )}
 
-        {normalizedQuery && filteredClubs.length === 0 && filteredPlayers.length === 0 && (
+        {normalizedQuery && filteredTeams.length === 0 && filteredPlayers.length === 0 && (
           <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
             <p className="text-lg font-medium text-gray-700">No results found.</p>
             <p className="mt-2 text-gray-500">Try another team name, sport, or player.</p>
@@ -133,8 +133,8 @@ export default function Home() {
         )}
 
         <section className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {filteredClubs.map((club) => (
-            <ClubCard key={club.id} club={club} />
+          {filteredTeams.map((team) => (
+            <TeamCard key={team.id} team={team} />
           ))}
         </section>
       </main>

@@ -9,7 +9,7 @@ type SearchBarProps = {
 export default function SearchBar({
   value,
   onChange,
-  label = "Search clubs or players",
+  label = "Search teams or players",
   placeholder = "Try: basketball, soccer, Jordan Banks...",
   summaryText,
 }: SearchBarProps) {
