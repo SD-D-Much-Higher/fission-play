@@ -14,4 +14,6 @@ games_collection = db["games"]
 schedules_collection = db["schedules"]
 standings_collection = db["standings"]
 
+auth_users_collection = db["auth_users"]
+
 print("Connected to MongoDB!")
