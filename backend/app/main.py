@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI(title="Fission Play API")
 
+# Database connection (complete for future, incomplete for demo)
 db_error = None
 users_collection = None
 
