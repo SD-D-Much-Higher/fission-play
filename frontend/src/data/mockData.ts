@@ -1,3 +1,6 @@
+import type { GameEvent } from "../types/gameEvent"
+import type { TeamStatsMap } from "../types/teamStats"
+
 export const teams = [
   {
     id: "mens-basketball",
@@ -124,7 +127,7 @@ export const players = [
   },
 ]
 
-export const games = [
+export const games: GameEvent[] = [
   {
     id: "g1",
     teamId: "mens-basketball",
@@ -190,7 +193,7 @@ export const games = [
   },
 ]
 
-export const teamStats = {
+export const teamStats: TeamStatsMap = {
   "mens-basketball": {
     wins: 6,
     losses: 2,

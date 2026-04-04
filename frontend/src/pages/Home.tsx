@@ -68,7 +68,7 @@ export default function Home() {
         {normalizedQuery && (
           <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-2xl font-bold text-gray-900">Team Matches</h2>
-            {filteredClubs.length === 0 ? (
+            {filteredTeams.length === 0 ? (
               <p className="text-gray-500">No team matches found.</p>
             ) : (
               <div className="space-y-3">
