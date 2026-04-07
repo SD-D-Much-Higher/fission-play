@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+from app.routes import players
+
 app = FastAPI(title="Fission Play API")
+app.include_router(players.router)
 
 # Database connection (complete for future, incomplete for demo)
 db_error = None
 users_collection = None
 
 try:
-    from db.database import users_collection as mongo_users_collection
+    from backend.app.db.database import users_collection as mongo_users_collection
 
     users_collection = mongo_users_collection
 except Exception as exc:  # Keep API bootable even if DB/env is missing.

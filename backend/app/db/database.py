@@ -1,11 +1,11 @@
-from pymongo import MongoClient
 import os
+from pymongo import MongoClient
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = MongoClient(os.getenv("MONGO_URI"))
-db = client[os.getenv("DB_NAME")]
+client = MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
+db = client.get_database(os.getenv("MONGO_DB_NAME", "rpi_club_sports"))
 
 # Collections
 users_collection = db["users"]
