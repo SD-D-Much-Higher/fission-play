@@ -1,92 +1,98 @@
-from typing import List
-
-from bson import ObjectId
 from fastapi import APIRouter, HTTPException, status
 
-from app.db.database import db
-from app.models.players import PlayerCreate, PlayerInDB, PlayerUpdate
+from typing import cast
+from beanie import Link
+
+from app.models.players import Player, PlayerCreate, PlayerResponse, PlayerUpdate
+from app.models.teams import Team
 
 router = APIRouter(prefix="/players", tags=["players"])
 
 
-@router.get("/", response_model=List[PlayerInDB])
-async def get_players():
-    players = await db.players.find().to_list(length=None)
-    return players
+@router.get("/", response_model=list[PlayerResponse])
+async def get_players() -> list[PlayerResponse]:
+    players = await Player.find_all(fetch_links=True).to_list()
+    return [PlayerResponse.from_document(player) for player in players]
 
 
-@router.get("/{player_id}", response_model=PlayerInDB)
-async def get_player(player_id: str):
-    if not ObjectId.is_valid(player_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid player id",
-        )
-
-    player = await db.players.find_one({"_id": ObjectId(player_id)})
-    if not player:
+@router.get("/{player_id}", response_model=PlayerResponse)
+async def get_player(player_id: str) -> PlayerResponse:
+    player = await Player.get(player_id, fetch_links=True)
+    if player is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Player not found",
         )
-
-    return player
-
-
-@router.post("/", response_model=PlayerInDB, status_code=status.HTTP_201_CREATED)
-async def create_player(player: PlayerCreate):
-    player_dict = player.model_dump(exclude_none=True)
-
-    result = await db.players.insert_one(player_dict)
-    created_player = await db.players.find_one({"_id": result.inserted_id})
-
-    return created_player
+    return PlayerResponse.from_document(player)
 
 
-@router.put("/{player_id}", response_model=PlayerInDB)
-async def update_player(player_id: str, player_update: PlayerUpdate):
-    if not ObjectId.is_valid(player_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid player id",
-        )
+@router.post("/", response_model=PlayerResponse, status_code=status.HTTP_201_CREATED)
+async def create_player(payload: PlayerCreate) -> PlayerResponse:
+    linked_team: Link[Team] | None = None
 
-    update_data = player_update.model_dump(exclude_unset=True, exclude_none=True)
-    if not update_data:
-        existing_player = await db.players.find_one({"_id": ObjectId(player_id)})
-        if not existing_player:
+    if payload.team_id is not None:
+        team = await Team.get(payload.team_id)
+        if team is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Player not found",
+                detail="Team not found",
             )
-        return existing_player
+        linked_team = cast(Link[Team], team)
 
-    result = await db.players.update_one(
-        {"_id": ObjectId(player_id)},
-        {"$set": update_data},
+    player = Player(
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        team=linked_team,
+        jersey_number=payload.jersey_number,
+        position=payload.position,
+        year=payload.year,
     )
+    await player.insert()
+    await player.fetch_all_links()
 
-    if result.matched_count == 0:
+    return PlayerResponse.from_document(player)
+
+
+@router.patch("/{player_id}", response_model=PlayerResponse)
+async def update_player(player_id: str, payload: PlayerUpdate) -> PlayerResponse:
+    player = await Player.get(player_id, fetch_links=True)
+    if player is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Player not found",
         )
 
-    updated_player = await db.players.find_one({"_id": ObjectId(player_id)})
-    return updated_player
+    updates = payload.model_dump(exclude_unset=True)
+
+    if "team_id" in updates:
+        team_id = updates.pop("team_id")
+        if team_id is None:
+            player.team = None
+        else:
+            team = await Team.get(team_id)
+            if team is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Team not found",
+                )
+            player.team = cast(Link[Team], team)
+
+    for field_name, value in updates.items():
+        setattr(player, field_name, value)
+
+    await player.save()
+    await player.fetch_all_links()
+
+    return PlayerResponse.from_document(player)
 
 
 @router.delete("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_player(player_id: str):
-    if not ObjectId.is_valid(player_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid player id",
-        )
-
-    result = await db.players.delete_one({"_id": ObjectId(player_id)})
-    if result.deleted_count == 0:
+async def delete_player(player_id: str) -> None:
+    player = await Player.get(player_id)
+    if player is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Player not found",
         )
+
+    await player.delete()

@@ -1,19 +1,18 @@
 import os
-from pymongo import MongoClient
+
+from pymongo import AsyncMongoClient
+from beanie import init_beanie
+
 from dotenv import load_dotenv
+
+from app.models.players import Player
+from app.models.teams import Team
+from app.models.games import Game
+
 
 load_dotenv()
 
-client = MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
-db = client.get_database(os.getenv("MONGO_DB_NAME", "rpi_club_sports"))
+async def init_db():
+    client = AsyncMongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
 
-# Collections
-users_collection = db["users"]
-teams_collection = db["teams"]
-games_collection = db["games"]
-schedules_collection = db["schedules"]
-standings_collection = db["standings"]
-
-auth_users_collection = db["auth_users"]
-
-print("Connected to MongoDB!")
+    await init_beanie(database=client.db_name, document_models=[Player, Team, Game])

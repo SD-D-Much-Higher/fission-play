@@ -1,41 +1,32 @@
+from beanie import Document, Link
 from typing import Optional
 
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-
-class PyObjectId(str):
-    @classmethod
-    def __get_pydantic_json_schema__(cls, core_schema, handler):
-        return {"type": "string"}
-
-    @classmethod
-    def validate(cls, value):
-        if isinstance(value, ObjectId):
-            return str(value)
-        if not ObjectId.is_valid(value):
-            raise ValueError("Invalid ObjectId")
-        return str(value)
+from app.models.teams import Team, TeamResponse
 
 
-class PlayerBase(BaseModel):
+class Player(Document):
+    first_name: str
+    last_name: str
+    team: Optional[Link[Team]] = None
+    jersey_number: Optional[int] = None
+    position: Optional[str] = None
+    year: Optional[str] = None
+
+    class Settings:
+        name = "players"
+        validate_on_save = True
+
+
+class PlayerCreate(BaseModel):
     first_name: str
     last_name: str
     team_id: Optional[str] = None
     jersey_number: Optional[int] = None
     position: Optional[str] = None
-    year: Optional[str] = None  # Freshman, Sophomore, etc.
-
-    @field_validator("team_id")
-    @classmethod
-    def validate_team_id(cls, value: Optional[str]) -> Optional[str]:
-        if value is not None and not ObjectId.is_valid(value):
-            raise ValueError("Invalid team_id")
-        return value
-
-
-class PlayerCreate(PlayerBase):
-    pass
+    year: Optional[str] = None
 
 
 class PlayerUpdate(BaseModel):
@@ -46,19 +37,28 @@ class PlayerUpdate(BaseModel):
     position: Optional[str] = None
     year: Optional[str] = None
 
-    @field_validator("team_id")
+
+class PlayerResponse(BaseModel):
+    id: str = Field(..., alias="id")
+    first_name: str
+    last_name: str
+    team: Optional[TeamResponse] = None
+    jersey_number: Optional[int] = None
+    position: Optional[str] = None
+    year: Optional[str] = None
+
     @classmethod
-    def validate_team_id(cls, value: Optional[str]) -> Optional[str]:
-        if value is not None and not ObjectId.is_valid(value):
-            raise ValueError("Invalid team_id")
-        return value
+    def from_document(cls, player: Player) -> "PlayerResponse":
+        team_response = None
+        if player.team and isinstance(player.team, Team):
+            team_response = TeamResponse.from_document(player.team)
 
-
-class PlayerInDB(PlayerBase):
-    id: Optional[PyObjectId] = Field(default=None, alias="_id")
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-        json_encoders={ObjectId: str},
-    )
+        return cls(
+            id=str(player.id),
+            first_name=player.first_name,
+            last_name=player.last_name,
+            team=team_response,
+            jersey_number=player.jersey_number,
+            position=player.position,
+            year=player.year,
+        )
