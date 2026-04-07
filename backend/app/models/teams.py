@@ -10,6 +10,7 @@ class Team(Document):
     name: Annotated[str, Indexed(unique=True)]
     sport: str
     description: Optional[str] = None
+    school: Optional[str] = None
     coach_name: Optional[str] = None
 
     class Settings:
@@ -21,6 +22,7 @@ class TeamCreate(BaseModel):
     name: str
     sport: str
     description: Optional[str] = None
+    school: Optional[str] = None
     coach_name: Optional[str] = None
 
 
@@ -28,6 +30,7 @@ class TeamUpdate(BaseModel):
     name: Optional[str] = None
     sport: Optional[str] = None
     description: Optional[str] = None
+    school: Optional[str] = None
     coach_name: Optional[str] = None
 
 
@@ -36,6 +39,7 @@ class TeamResponse(BaseModel):
     name: str
     sport: str
     description: Optional[str] = None
+    school: Optional[str] = None
     coach_name: Optional[str] = None
 
     @classmethod
@@ -45,5 +49,6 @@ class TeamResponse(BaseModel):
             name=team.name,
             sport=team.sport,
             description=team.description,
+            school=team.school,
             coach_name=team.coach_name,
         )
