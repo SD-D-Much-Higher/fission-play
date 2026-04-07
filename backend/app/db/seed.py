@@ -1,4 +1,4 @@
-from database import *
+from backend.app.db.database import *
 
 def seed_database():
     # Clear existing data

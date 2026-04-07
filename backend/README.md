@@ -13,10 +13,12 @@ docker compose up -d
 ### Start the development server
 
 ```bash
-uv run fastapi dev main.py
+uv run fastapi dev
 ```
 
 Visit http://localhost:8000
+
+View API docs at http://localhost:8000/docs
 
 ### Deploy to FastAPI Cloud
 
