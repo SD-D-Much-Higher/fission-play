@@ -18,6 +18,8 @@ uv run fastapi dev
 
 Visit http://localhost:8000
 
+View API docs at http://localhost:8000/docs
+
 ### Deploy to FastAPI Cloud
 
 > FastAPI Cloud is currently in private beta. Join the waitlist at https://fastapicloud.com
