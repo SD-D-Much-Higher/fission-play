@@ -4,7 +4,7 @@ A project created with FastAPI CLI.
 
 ## Quick Start
 
-## Running with docker
+### Running with docker
 
 ```bash
 docker compose up -d
@@ -29,10 +29,14 @@ uv run fastapi login
 uv run fastapi deploy
 ```
 
-## Project Structure
+## Contributing
 
-- `main.py` - Your FastAPI application
-- `pyproject.toml` - Project dependencies
+Before opening a PR, make sure all code meets style requirements by running:
+
+```bash
+uv run ruff format
+```
+
 
 ## Learn More
 
