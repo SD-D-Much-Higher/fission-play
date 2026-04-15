@@ -4,6 +4,7 @@ import { Calendar, CheckCircle2, Clock3, Edit, Plus, Trash2, XCircle } from "luc
 import Navbar from "../components/Navbar"
 import { teams, players, games, teamStats } from "../data/mockData.ts"
 import { scheduleService } from "../services/ScheduleService"
+import { teamStatsService } from "../services/TeamStatsService"
 
 // Temporary mock user until auth is connected
 const mockUser = {
@@ -55,7 +56,9 @@ export default function TeamDashboardPage() {
     () => scheduleService.buildTeamScheduleItems(team?.name ?? "Team", teamGames),
     [team?.name, teamGames]
   )
-  const stats = teamStats[teamId as keyof typeof teamStats]
+  const stats = useMemo(() => teamStatsService.getTeamStats(teamStats, teamId), [teamId])
+  const recordLabel = useMemo(() => teamStatsService.getRecordLabel(stats), [stats])
+  const winRateLabel = useMemo(() => teamStatsService.getWinRateLabel(stats), [stats])
 
   const isOfficer = mockUser.role === "officer" && mockUser.teamId === teamId
 
@@ -146,7 +149,7 @@ export default function TeamDashboardPage() {
           <StatCard title="Pending Approvals" value={pendingStats.length} />
           <StatCard title="Upcoming Games" value={upcomingGamesCount} />
           <StatCard title="Active Roster" value={teamPlayers.length} />
-          <StatCard title="Record" value={stats ? `${stats.wins}-${stats.losses}` : "N/A"} />
+          <StatCard title="Record" value={recordLabel} />
         </div>
 
         <div className="mb-6 rounded-2xl bg-white p-2 shadow-sm">
@@ -296,8 +299,8 @@ export default function TeamDashboardPage() {
           <SectionCard title="Team Stats">
             {stats ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <MiniCard label="Win Rate" value={`${stats.winPercentage}%`} />
-                <MiniCard label="Record" value={`${stats.wins}-${stats.losses}`} />
+                <MiniCard label="Win Rate" value={winRateLabel} />
+                <MiniCard label="Record" value={recordLabel} />
                 <MiniCard label="Active Roster" value={stats.activeRoster} />
                 <MiniCard label="Avg PPG" value={stats.avgPointsFor} />
               </div>

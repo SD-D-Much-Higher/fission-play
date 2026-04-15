@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import { teams, players, games, teamStats } from "../data/mockData"
 import { scheduleService } from "../services/ScheduleService"
+import { teamStatsService } from "../services/TeamStatsService"
 
 type TabKey = "schedule" | "roster" | "player-stats" | "team-stats"
 
@@ -17,12 +18,9 @@ export default function TeamProfilePage() {
     () => scheduleService.buildTeamScheduleItems(team?.name ?? "Team", teamGames),
     [team?.name, teamGames]
   )
-  const stats = teamStats[teamId as keyof typeof teamStats]
-
-  const winRate = useMemo(() => {
-    if (!stats) return "N/A"
-    return `${stats.winPercentage}%`
-  }, [stats])
+  const stats = useMemo(() => teamStatsService.getTeamStats(teamStats, teamId), [teamId])
+  const recordLabel = useMemo(() => teamStatsService.getRecordLabel(stats), [stats])
+  const winRate = useMemo(() => teamStatsService.getWinRateLabel(stats), [stats])
 
   if (!team) {
     return (
@@ -254,7 +252,7 @@ export default function TeamProfilePage() {
               <>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                   <BigStat label="Win Rate" value={winRate} />
-                  <BigStat label="Record" value={`${stats.wins}-${stats.losses}`} />
+                  <BigStat label="Record" value={recordLabel} />
                   <BigStat label="Active Roster" value={stats.activeRoster} />
                   <BigStat label="Avg PPG" value={stats.avgPointsFor} />
                 </div>
