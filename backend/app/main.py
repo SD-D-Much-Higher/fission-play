@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 
 from app.routes import players, teams, games
 from app.db.database import init_db
