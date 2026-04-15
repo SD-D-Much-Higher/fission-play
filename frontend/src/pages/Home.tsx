@@ -125,18 +125,13 @@ export default function Home() {
           </section>
         )}
 
-        {normalizedQuery && filteredTeams.length === 0 && filteredPlayers.length === 0 && (
-          <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
-            <p className="text-lg font-medium text-gray-700">No results found.</p>
-            <p className="mt-2 text-gray-500">Try another team name, sport, or player.</p>
-          </section>
-        )}
-
+        {!normalizedQuery && filteredTeams.length > 0 && (
         <section className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           {filteredTeams.map((team) => (
-            <TeamCard key={team.id} team={team} />
-          ))}
-        </section>
+              <TeamCard key={team.id} team={team} />
+            ))}
+          </section>
+        )}
       </main>
     </div>
   )

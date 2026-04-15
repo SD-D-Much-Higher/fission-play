@@ -136,8 +136,8 @@ export const games: GameEvent[] = [
     time: "7:00 PM",
     location: "Houston Field House",
     score: {
-      home: 72,
-      away: 65,
+      rpi: 72,
+      opponent: 65,
     },
     result: "win",
   },
@@ -157,8 +157,8 @@ export const games: GameEvent[] = [
     time: "5:00 PM",
     location: "ECAV Stadium",
     score: {
-      home: 3,
-      away: 1,
+      rpi: 3,
+      opponent: 1,
     },
     result: "win",
   },
@@ -178,8 +178,8 @@ export const games: GameEvent[] = [
     time: "6:30 PM",
     location: "East Campus Arena",
     score: {
-      home: 3,
-      away: 2,
+      rpi: 3,
+      opponent: 2,
     },
     result: "win",
   },

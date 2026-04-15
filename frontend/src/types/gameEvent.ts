@@ -1,8 +1,8 @@
 export type GameResult = "win" | "loss" | "draw"
 
 export type GameScore = {
-  home: number
-  away: number
+  rpi: number
+  opponent: number
 }
 
 export interface GameEvent {

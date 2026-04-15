@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from "react"
 import { Link, useParams } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import { teams, players, games, teamStats } from "../data/mockData"
+import { scheduleService } from "../services/ScheduleService"
 
 type TabKey = "schedule" | "roster" | "player-stats" | "team-stats"
 
@@ -11,7 +12,11 @@ export default function TeamProfilePage() {
 
   const team = teams.find((t) => t.id === teamId)
   const teamPlayers = players.filter((p) => p.teamId === teamId)
-  const teamGames = games.filter((g) => g.teamId === teamId)
+  const teamGames = useMemo(() => scheduleService.getTeamGames(games, teamId), [teamId])
+  const teamScheduleItems = useMemo(
+    () => scheduleService.buildTeamScheduleItems(team?.name ?? "Team", teamGames),
+    [team?.name, teamGames]
+  )
   const stats = teamStats[teamId as keyof typeof teamStats]
 
   const winRate = useMemo(() => {
@@ -114,42 +119,31 @@ export default function TeamProfilePage() {
         {activeTab === "schedule" && (
           <SectionCard title="Schedule">
             <div className="space-y-4">
-              {teamGames.map((game) => (
+              {teamScheduleItems.map((scheduleItem) => (
                 <div
-                  key={game.id}
+                  key={scheduleItem.id}
                   className="flex flex-col gap-4 rounded-xl border border-gray-200 p-4 md:flex-row md:items-center md:justify-between"
                 >
                   <div>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {team.name} vs {game.opponent}
+                    <p className="mb-1 text-lg font-semibold text-gray-900">
+                      {scheduleItem.matchupLabel}
                     </p>
-                    <div className="mt-2 text-sm text-gray-500">
-                      <p>
-                        {new Date(game.date).toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                      <p>
-                        {game.time} • {game.location}
-                      </p>
+                    <div className=" text-sm text-gray-500">
+                      <p>{scheduleItem.formattedDate}</p>
+                      <p>{scheduleItem.timeAndLocation}</p>
                     </div>
                   </div>
 
                   <div>
-                    {game.score ? (
+                    {scheduleItem.scoreLine ? (
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-gray-900">
-                          {game.score.home} - {game.score.away}
-                        </p>
+                        <p className="text-2xl font-bold text-gray-900">{scheduleItem.scoreLine}</p>
                         <span
                           className={`rounded-full px-3 py-1 text-sm font-medium text-white ${
-                            game.result === "win" ? "bg-green-600" : "bg-red-600"
+                            scheduleItem.resultBadgeClass ?? "bg-gray-600"
                           }`}
                         >
-                          {game.result?.toUpperCase()}
+                          {scheduleItem.resultLabel}
                         </span>
                       </div>
                     ) : (

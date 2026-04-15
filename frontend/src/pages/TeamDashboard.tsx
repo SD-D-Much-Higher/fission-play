@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom"
 import { Calendar, CheckCircle2, Clock3, Edit, Plus, Trash2, XCircle } from "lucide-react"
 import Navbar from "../components/Navbar"
 import { teams, players, games, teamStats } from "../data/mockData.ts"
+import { scheduleService } from "../services/ScheduleService"
 
 // Temporary mock user until auth is connected
 const mockUser = {
@@ -49,13 +50,17 @@ export default function TeamDashboardPage() {
 
   const team = teams.find((t) => t.id === teamId)
   const teamPlayers = players.filter((p) => p.teamId === teamId)
-  const teamGames = games.filter((g) => g.teamId === teamId)
+  const teamGames = useMemo(() => scheduleService.getTeamGames(games, teamId), [teamId])
+  const teamScheduleItems = useMemo(
+    () => scheduleService.buildTeamScheduleItems(team?.name ?? "Team", teamGames),
+    [team?.name, teamGames]
+  )
   const stats = teamStats[teamId as keyof typeof teamStats]
 
   const isOfficer = mockUser.role === "officer" && mockUser.teamId === teamId
 
   const upcomingGamesCount = useMemo(
-    () => teamGames.filter((game) => !game.score).length,
+    () => scheduleService.getUpcomingGamesCount(teamGames),
     [teamGames]
   )
 
@@ -196,46 +201,33 @@ export default function TeamDashboardPage() {
         {activeTab === "schedule" && (
           <SectionCard title="Schedule">
             <div className="space-y-4">
-              {teamGames.map((game) => (
+              {teamScheduleItems.map((scheduleItem) => (
                 <div
-                  key={game.id}
+                  key={scheduleItem.id}
                   className="flex flex-col gap-4 rounded-xl border border-gray-200 p-4 md:flex-row md:items-center md:justify-between"
                 >
                   <div>
-                    <div className="mb-2 flex items-center gap-2">
+                    <div className="mb-1 flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="font-semibold">
-                        {team.name} vs {game.opponent}
-                      </span>
+                      <span className="font-semibold">{scheduleItem.matchupLabel}</span>
                     </div>
 
                     <div className="text-sm text-gray-500">
-                      <p>
-                        {new Date(game.date).toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                      <p>
-                        {game.time} • {game.location}
-                      </p>
+                      <p>{scheduleItem.formattedDate}</p>
+                      <p>{scheduleItem.timeAndLocation}</p>
                     </div>
                   </div>
 
                   <div>
-                    {game.score ? (
+                    {scheduleItem.scoreLine ? (
                       <div className="text-right">
-                        <p className="text-xl font-bold">
-                          {game.score.home} - {game.score.away}
-                        </p>
+                        <p className="text-xl font-bold">{scheduleItem.scoreLine}</p>
                         <span
                           className={`rounded-full px-3 py-1 text-sm font-medium text-white ${
-                            game.result === "win" ? "bg-green-600" : "bg-red-600"
+                            scheduleItem.resultBadgeClass ?? "bg-gray-600"
                           }`}
                         >
-                          {game.result?.toUpperCase()}
+                          {scheduleItem.resultLabel}
                         </span>
                       </div>
                     ) : (
