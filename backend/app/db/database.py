@@ -12,6 +12,7 @@ from app.models.games import Game
 
 load_dotenv()
 
+
 async def init_db():
     # Initialize the MongoDB client and Beanie ODM
     # Connect using env vars MONGO_URI and DB_NAME, with defaults if not set

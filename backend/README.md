@@ -4,7 +4,7 @@ A project created with FastAPI CLI.
 
 ## Quick Start
 
-## Running with docker
+### Running with docker
 
 ```bash
 docker compose up -d
@@ -29,10 +29,12 @@ uv run fastapi login
 uv run fastapi deploy
 ```
 
-## Project Structure
+## Contributing
 
-- `main.py` - Your FastAPI application
-- `pyproject.toml` - Project dependencies
+### Pre-commit formatting
+
+For changes made in the backend, a pre-commit hook is triggered that automatically formats files using the linter/formatter [ruff](https://github.com/astral-sh/ruff). The hook is defined in [.pre-commit-config.yaml](../.pre-commit-config.yaml) in the project root.
+
 
 ## Learn More
 
