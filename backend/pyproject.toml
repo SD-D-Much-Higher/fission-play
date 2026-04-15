@@ -8,3 +8,8 @@ dependencies = [
     "pymongo>=4.15.0",
     "python-dotenv>=1.1.1",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.10",
+]
