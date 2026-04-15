@@ -31,11 +31,9 @@ uv run fastapi deploy
 
 ## Contributing
 
-Before opening a PR, make sure all code meets style requirements by running:
+### Pre-commit formatting
 
-```bash
-uv run ruff format
-```
+For changes made in the backend, a pre-commit hook is triggered that automatically formats files using the linter/formatter [ruff](https://github.com/astral-sh/ruff). The hook is defined in [.pre-commit-config.yaml](../.pre-commit-config.yaml) in the project root.
 
 
 ## Learn More
