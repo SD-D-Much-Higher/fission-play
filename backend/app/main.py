@@ -14,9 +14,9 @@ app.include_router(games.router)
 async def start_db():
     await init_db()
 
+
 @app.get("/")
 def root():
     return {
         "message": "Fission Play API running",
     }
-

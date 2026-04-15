@@ -5,6 +5,7 @@ from auth.auth_models import RegisterRequest, LoginRequest
 
 router = APIRouter()
 
+
 # Register
 @router.post("/register")
 def register(user: RegisterRequest):
@@ -19,12 +20,13 @@ def register(user: RegisterRequest):
         "hashed_password": hash_password(user.password),
         "role": "player",
         "team_ids": [],
-        "is_active": True
+        "is_active": True,
     }
 
     auth_users_collection.insert_one(new_user)
 
     return {"message": "User registered successfully"}
+
 
 # Login
 @router.post("/login")
@@ -40,5 +42,5 @@ def login(user: LoginRequest):
     return {
         "message": "Login successful",
         "user_id": str(db_user["_id"]),
-        "role": db_user["role"]
+        "role": db_user["role"],
     }
