@@ -51,6 +51,15 @@ def test_user():
 
 
 @pytest.fixture(scope="module")
+def test_superuser():
+    return {
+        "username": "admin@example.com",
+        "password": "adminpassword1",
+        "is_superuser": True,
+    }
+
+
+@pytest.fixture(scope="module")
 def test_team():
     return {
         "name": "Test Team",
@@ -58,6 +67,28 @@ def test_team():
         "description": "A team for testing purposes",
         "school": "Test University",
         "coach_name": "Test Coach",
+    }
+
+
+@pytest.fixture(scope="module")
+def test_team2():
+    return {
+        "name": "Test Team 2",
+        "sport": "Soccer",
+        "description": "Another team for testing purposes",
+        "school": "Test University",
+        "coach_name": "Test Coach 2",
+    }
+
+
+@pytest.fixture(scope="module")
+def test_game():
+    return {
+        "game_date": "2024-10-01T15:00:00Z",
+        "location": "Test Stadium",
+        "home_score": 0,
+        "away_score": 0,
+        "status": "scheduled",
     }
 
 

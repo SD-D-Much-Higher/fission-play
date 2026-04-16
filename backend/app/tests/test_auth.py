@@ -2,13 +2,14 @@ from httpx import AsyncClient
 
 
 async def register_helper(async_client: AsyncClient, user_data):
+    print(f"Registering user with data: {user_data}")
     return await async_client.post(
         "/auth/register",
         json={
             "email": user_data["username"],
             "password": user_data["password"],
             "is_active": True,
-            "is_superuser": False,
+            "is_superuser": user_data.get("is_superuser", False),
             "is_verified": False,
         },
     )
@@ -104,3 +105,27 @@ async def test_create_team_without_auth(async_client: AsyncClient, test_team):
         json=test_team,
     )
     assert create_team_response.status_code == 401
+
+
+async def test_update_team_non_officer(async_client: AsyncClient, test_user, test_team):
+    # Create a team with the test user as an officer
+    created_team, _ = await test_create_team_with_auth(
+        async_client, test_user, test_team
+    )
+    team_id = created_team["id"]
+
+    # Register and login a different user who is not an officer of the team
+    other_user_data = {
+        "username": "2" + test_user["username"],
+        "password": test_user["password"],
+    }
+    login_response_other = await test_register_and_login(async_client, other_user_data)
+    access_token_other = login_response_other["access_token"]
+
+    # Attempt to update the team with a non-officer user
+    update_response = await async_client.patch(
+        f"/teams/{team_id}",
+        json={"name": "Updated Team Name"},
+        headers={"Authorization": f"Bearer {access_token_other}"},
+    )
+    assert update_response.status_code == 403

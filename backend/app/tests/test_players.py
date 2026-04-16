@@ -30,7 +30,7 @@ async def test_create_player(
         json=player_data,
         headers={"Authorization": f"Bearer {access_token}"},
     )
-
+    print(f"Create player response: {response.json()}")
     assert response.status_code == 201
 
     created_player = response.json()
@@ -38,6 +38,14 @@ async def test_create_player(
     assert created_player["first_name"] == test_player["first_name"]
     assert created_player["last_name"] == test_player["last_name"]
     assert created_player["team"]["id"] == team_id
+
+    # Fetch the team's players to verify the new player is included
+    team_response = await async_client.get(f"/teams/{team_id}")
+    assert team_response.status_code == 200
+    team_info = team_response.json()
+    assert "players" in team_info
+    print(f"Team info: {team_info}")
+    assert any(player["_id"] == created_player["id"] for player in team_info["players"])
 
     return created_player
 
@@ -89,3 +97,29 @@ async def test_create_player_with_invalid_team_id_format(
     )
 
     assert response.status_code == 400
+
+
+async def test_create_player_without_officer_permissions(
+    async_client: AsyncClient, test_user, test_team, test_player
+):
+    created_team, _ = await test_create_team_with_auth(
+        async_client, test_user, test_team
+    )
+    team_id = created_team["id"]
+
+    # Register and login a different user who is not an officer of the team
+    other_user_data = {
+        "username": "2" + test_user["username"],
+        "password": test_user["password"],
+    }
+    login_response_other = await test_register_and_login(async_client, other_user_data)
+    access_token_other = login_response_other["access_token"]
+
+    # Attempt to create a player on the team with a user that does not have officer permissions
+    player_data = {**test_player, "team_id": team_id}
+    response = await async_client.post(
+        "/players/",
+        json=player_data,
+        headers={"Authorization": f"Bearer {access_token_other}"},
+    )
+    assert response.status_code == 403
