@@ -1,10 +1,13 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+from typing import List, Annotated
 
 from typing import cast
 from beanie import Link
 
 from app.models.players import Player, PlayerCreate, PlayerResponse, PlayerUpdate
 from app.models.teams import Team
+
+from auth.auth_user import User, get_current_active_user
 
 router = APIRouter(prefix="/players", tags=["players"])
 
@@ -27,7 +30,10 @@ async def get_player(player_id: str) -> PlayerResponse:
 
 
 @router.post("/", response_model=PlayerResponse, status_code=status.HTTP_201_CREATED)
-async def create_player(payload: PlayerCreate) -> PlayerResponse:
+async def create_player(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    payload: PlayerCreate,
+) -> PlayerResponse:
     linked_team: Link[Team] | None = None
 
     if payload.team_id is not None:
