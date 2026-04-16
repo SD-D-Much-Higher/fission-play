@@ -1,5 +1,6 @@
 """Tests fixtures."""
 
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from pymongo import AsyncMongoClient
@@ -42,3 +43,30 @@ async def async_client(test_db):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
+
+
+@pytest.fixture(scope="module")
+def test_user():
+    return {"username": "user@example.com", "password": "password1"}
+
+
+@pytest.fixture(scope="module")
+def test_team():
+    return {
+        "name": "Test Team",
+        "sport": "Soccer",
+        "description": "A team for testing purposes",
+        "school": "Test University",
+        "coach_name": "Test Coach",
+    }
+
+
+@pytest.fixture(scope="module")
+def test_player():
+    return {
+        "first_name": "John",
+        "last_name": "Doe",
+        "jersey_number": 10,
+        "position": "Forward",
+        "year": "Senior",
+    }
