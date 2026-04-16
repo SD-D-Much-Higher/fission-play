@@ -21,7 +21,7 @@ def require_team(value: Team | Link[Team], detail: str) -> Team:
 @router.get("/", response_model=list[GameResponse])
 async def get_games() -> list[GameResponse]:
     games = await Game.find_all(fetch_links=True).to_list()
-    return [GameResponse.from_document(game) for game in games]
+    return [await GameResponse.from_document(game) for game in games]
 
 
 @router.get("/{game_id}", response_model=GameResponse)
@@ -33,7 +33,7 @@ async def get_game(game_id: str) -> GameResponse:
             detail="Game not found",
         )
 
-    return GameResponse.from_document(game)
+    return await GameResponse.from_document(game)
 
 
 @router.post("/", response_model=GameResponse, status_code=status.HTTP_201_CREATED)
@@ -65,7 +65,7 @@ async def create_game(payload: GameCreate) -> GameResponse:
     await game.insert()
     await game.fetch_all_links()
 
-    return GameResponse.from_document(game)
+    return await GameResponse.from_document(game)
 
 
 @router.patch("/{game_id}", response_model=GameResponse)
@@ -116,7 +116,7 @@ async def update_game(game_id: str, payload: GameUpdate) -> GameResponse:
     await game.save()
     await game.fetch_all_links()
 
-    return GameResponse.from_document(game)
+    return await GameResponse.from_document(game)
 
 
 @router.delete("/{game_id}", status_code=status.HTTP_204_NO_CONTENT)
