@@ -35,6 +35,9 @@ uv run fastapi deploy
 
 For changes made in the backend, a pre-commit hook is triggered that automatically formats files using the linter/formatter [ruff](https://github.com/astral-sh/ruff). The hook is defined in [.pre-commit-config.yaml](../.pre-commit-config.yaml) in the project root.
 
+### Testing
+
+The backend has a suite of unit and integration tests that have fairly good coverage of expected interations. Tests can be ran with `uv run pytest`.
 
 ## Learn More
 
