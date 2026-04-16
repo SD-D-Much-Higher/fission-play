@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { clubs, players } from "../data/mockData"
 import { searchPlayers, searchTeams } from "../services/searchService"
+import { Search } from "lucide-react"
 
 export default function Navbar() {
   const location = useLocation()
@@ -9,8 +10,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const searchContainerRef = useRef<HTMLDivElement | null>(null)
 
-  const shouldHideSearch =
-    location.pathname === "/" || location.pathname === "/signin" || location.pathname === "/signup"
+  const shouldHideSearch = location.pathname === "/signin" || location.pathname === "/signup"
   const hasQuery = query.trim().length > 0
 
   const matchedTeams = useMemo(() => {
@@ -34,7 +34,7 @@ export default function Navbar() {
   }, [])
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 bg-white px-8 py-4">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-8 py-4">
       <Link to="/" className="flex items-center gap-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-700 font-bold text-white">
           F
@@ -44,7 +44,8 @@ export default function Navbar() {
 
       <div className="flex items-center w-max gap-5">
         {!shouldHideSearch && (
-          <div ref={searchContainerRef} className="relative w-max min-w-60 max-w-lg">
+          <div ref={searchContainerRef} className="relative flex flex-row-reverse items-center gap-2 w-max min-w-60 max-w-lg px-5 py-2 text-base text-gray-500
+           rounded-xl bg-white shadow-md transition-all duration-300 focus-within:text-black focus-within:shadow-black/40">
             <input
               type="text"
               value={query}
@@ -54,9 +55,9 @@ export default function Navbar() {
                 setIsOpen(true)
               }}
               placeholder="Search teams or players..."
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 outline-none transition focus:border-red-600"
+              className="peer w-full text-left min-w-50 text-base outline-none transition-colors duration-300"
             />
-
+            <Search className="size-5 opacity-60 transition-opacity duration-300 peer-focus:opacity-100 peer-focus:text-black" />
             {isOpen && (
               <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 rounded-2xl border border-gray-200 bg-white p-4 shadow-lg">
                 {!hasQuery ? (
@@ -117,10 +118,10 @@ export default function Navbar() {
           </div>
         )}
         
-        <Link to="/signin" className="w-max text-gray-700 hover:text-gray-900">
+        <Link to="/signin" className="w-max text-base font-medium text-gray-700 hover:text-gray-900">
           Sign In
         </Link>
-        <Link to="/signup" className="w-max text-gray-700 hover:text-gray-900">
+        <Link to="/signup" className="w-max text-base font-medium text-gray-700 hover:text-gray-900">
           Sign Up
         </Link>
       </div>
