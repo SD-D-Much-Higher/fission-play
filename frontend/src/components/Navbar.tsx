@@ -34,7 +34,7 @@ export default function Navbar() {
   }, [])
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-8 py-4">
+    <header className="fixed top-0 left-0 z-50 w-full max-w-full flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-8 py-4">
       <Link to="/" className="flex items-center gap-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-700 font-bold text-white">
           F

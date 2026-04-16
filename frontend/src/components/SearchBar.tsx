@@ -4,29 +4,27 @@ type SearchBarProps = {
   label?: string
   placeholder?: string
   summaryText?: string
+  className?: string
 }
 
 export default function SearchBar({
   value,
   onChange,
-  label = "Search clubs or players",
-  placeholder = "Try: basketball, soccer, Jordan Banks...",
+  placeholder = "Search clubs or players (e.g. basketball, soccer, Jordan Banks...)",
   summaryText,
+  className,
 }: SearchBarProps) {
   return (
-    <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-      <label htmlFor="homepage-search" className="mb-3 block text-sm font-semibold text-gray-700">
-        {label}
-      </label>
+    <section className={className}>
       <input
         id="homepage-search"
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-base text-gray-900 outline-none transition focus:border-red-600"
+        className="w-full rounded-xl border-3 border-black px-5 py-5 text-base font-medium text-black placeholder:text-black/50 outline-none shadow-sm transition focus:border-red-600"
       />
-      {summaryText && <p className="mt-3 text-sm text-gray-500">{summaryText}</p>}
+      {summaryText && <p className="mt-3 text-sm font-medium text-gray-900">{summaryText}</p>}
     </section>
   )
 }
