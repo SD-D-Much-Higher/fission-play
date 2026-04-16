@@ -1,115 +1,66 @@
-import { useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import { useCallback } from "react"
 import Navbar from "../components/Navbar"
 import ClubCard from "../components/ClubCard"
-import SearchBar from "../components/SearchBar"
-import { clubs, players } from "../data/mockData"
-import { searchPlayers, searchTeams } from "../services/searchService"
+import { clubs } from "../data/mockData"
+import homeHero from "../assets/wcsHero.avif"
+import { CircleArrowDown } from "lucide-react"
+import { scrollToElementOfId } from "../utils/inPageRoutingScroll"
 
 export default function Home() {
-  const [query, setQuery] = useState("")
-  const hasQuery = query.trim().length > 0
-
-  const filteredClubs = useMemo(() => {
-    return searchTeams(clubs, query)
-  }, [query])
-
-  const filteredPlayers = useMemo(() => {
-    return searchPlayers(players, clubs, query)
-  }, [query])
+  const scrollToFeaturedTeams = useCallback(() => { scrollToElementOfId("featured-teams") }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen w-full overflow-x-hidden flex flex-col items-center justify-start gap-6 pb-20 bg-gray-50">
       <Navbar />
-
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <section className="mb-10 text-center">
-          <h1 className="mb-3 text-5xl font-extrabold text-gray-900">
-            Featured Teams
-          </h1>
-          <p className="text-lg text-gray-600">
-            Discover the vibrant club sports community at RPI.
-          </p>
-        </section>
-
-        <SearchBar
-          value={query}
-          onChange={setQuery}
-          summaryText={
-            hasQuery
-              ? `${filteredClubs.length} team match${filteredClubs.length === 1 ? "" : "es"}, ${filteredPlayers.length} player match${filteredPlayers.length === 1 ? "" : "es"}`
-              : undefined
-          }
+      <section className="relative w-full h-max min-h-svh flex flex-col items-start justify-end gap-6 pt-80 pb-30 px-25 overflow-hidden">
+        <img 
+          src={homeHero}
+          alt="RPI Club Sports"
+          className="absolute inset-0 z-0 w-full object-cover pointer-events-none blur-xs brightness-90 contrast-100"
         />
+        <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-b from-transparent from-38% to-black/92 to-92%" />
+        <div className="z-15 w-max flex flex-col items-start justify-end gap-4 text-xl text-left font-medium text-gray-200 text-shadow-lg">
+          <h1 className="w-max max-w-full">
+            The Home of <br/>
+            <span className="text-8xl font-extrabold text-white text-shadow-black/90">
+            <span className="text-red-700">RPI </span> 
+            Club Sports</span>
+          </h1>
+          
+          <div className="w-max h-max flex flex-row items-center justify-start gap-4 pt-4">
+            <p className="z-15 w-max max-w-full">
+              Discover the vibrant club sports community at RPI
+            </p>
+            <button
+              type="button"
+              onClick={scrollToFeaturedTeams}
+              aria-label="Jump to featured teams"
+              className="cursor-pointer hover:text-red-700 transition-opacity-colors duration-300"
+            >
+              <CircleArrowDown className="size-max hero-pulse-arrow " />
+            </button>
+          </div>
+        </div>
+      </section>
 
-        {hasQuery && filteredClubs.length > 0 && (
-          <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900">Team Matches</h2>
-            {filteredClubs.length === 0 ? (
-              <p className="text-gray-500">No team matches found.</p>
-            ) : (
-              <div className="space-y-3">
-                {filteredClubs.map((club) => (
-                  <div
-                    key={club.id}
-                    className="flex flex-col gap-2 rounded-xl border border-gray-200 p-4 md:flex-row md:items-center md:justify-between"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-900">{club.name}</p>
-                      <p className="text-sm text-gray-500">{club.sport}</p>
-                    </div>
-                    <Link
-                      to={`/clubs/${club.id}`}
-                      className="inline-block rounded-lg bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-red-800"
-                    >
-                      View Team Profile
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {hasQuery && filteredPlayers.length > 0 && (
-          <section className="mb-10 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900">Player Matches</h2>
-            {filteredPlayers.length === 0 ? (
-              <p className="text-gray-500">No player matches found.</p>
-            ) : (
-              <div className="space-y-3">
-                {filteredPlayers.map((player) => (
-                  <div
-                    key={player.id}
-                    className="flex flex-col gap-2 rounded-xl border border-gray-200 p-4 md:flex-row md:items-center md:justify-between"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-900">{player.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {player.position} - {player.teamName}
-                      </p>
-                    </div>
-                    <Link
-                      to={`/players/${player.id}`}
-                      className="inline-block rounded-lg bg-red-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-red-800"
-                    >
-                      View Player Profile
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {!hasQuery && (
-        <section className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {filteredClubs.map((club) => (
+      {/* Featured Teams */}
+      <section id="featured-teams" className="max-w-full mb-10 text-center py-10 px-14 scroll-mt-20">
+        <h1 className="mb-3 text-5xl font-extrabold text-gray-900">
+          Featured Teams
+        </h1>
+        <p className="text-lg text-gray-600">
+          Check out the most popular club teams at RPI:
+        </p>
+    
+        {/* Featured Teams Grid */}
+        <div className="max-w-full grid gap-8 md:grid-cols-2 xl:grid-cols-3 mt-10 text-left">
+          {clubs.map((club) => (
             <ClubCard key={club.id} club={club} />
           ))}
-        </section>
-        )}
-      </main>
+        </div>
+      </section>
+
+      
     </div>
   )
 }
