@@ -60,7 +60,11 @@ async def create_player(
 
 
 @router.patch("/{player_id}", response_model=PlayerResponse)
-async def update_player(player_id: str, payload: PlayerUpdate) -> PlayerResponse:
+async def update_player(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    player_id: str,
+    payload: PlayerUpdate,
+) -> PlayerResponse:
     player = await Player.get(player_id, fetch_links=True)
     if player is None:
         raise HTTPException(
@@ -93,7 +97,9 @@ async def update_player(player_id: str, payload: PlayerUpdate) -> PlayerResponse
 
 
 @router.delete("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_player(player_id: str) -> None:
+async def delete_player(
+    current_user: Annotated[User, Depends(get_current_active_user)], player_id: str
+) -> None:
     player = await Player.get(player_id)
     if player is None:
         raise HTTPException(
