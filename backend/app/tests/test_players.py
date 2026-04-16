@@ -12,7 +12,7 @@ async def test_root(async_client: AsyncClient):
     assert "message" in msg and msg["message"] == "Fission Play API running"
 
 
-async def test_get_players(async_client: AsyncClient):
+async def test_get_players_empty(async_client: AsyncClient):
     response = await async_client.get("/players/")
     assert response.status_code == 200
     msg = response.json()
