@@ -2,8 +2,18 @@ from fastapi import FastAPI
 
 from app.routes import players, teams, games, auth
 from app.db.database import init_db
-from app.models.users import UserRead, UserCreate, UserUpdate
-from auth.auth_user import auth_backend, current_active_user, fastapi_users
+from app.models.users import UserRead, UserUpdate
+from auth.auth_user import fastapi_users
+
+from app.models.teams import Team
+from app.models.teams import TeamResponse
+from app.models.players import Player
+from app.models.players import PlayerResponse
+
+Team.model_rebuild()
+TeamResponse.model_rebuild()
+Player.model_rebuild()
+PlayerResponse.model_rebuild()
 
 app = FastAPI(title="Fission Play API")
 app.include_router(players.router)

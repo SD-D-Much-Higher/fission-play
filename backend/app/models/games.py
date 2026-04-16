@@ -6,7 +6,7 @@ from typing import Optional
 from beanie import Document, Link
 from pydantic import BaseModel, Field, model_validator
 
-from app.models.teams import Team, TeamResponse
+from app.models.teams import Team, TeamResponse, TeamResponseBase
 
 
 class Game(Document):
@@ -61,8 +61,8 @@ class GameUpdate(BaseModel):
 
 class GameResponse(BaseModel):
     id: str = Field(..., alias="id")
-    home_team: TeamResponse
-    away_team: TeamResponse
+    home_team: TeamResponseBase
+    away_team: TeamResponseBase
     game_date: datetime
     location: Optional[str] = None
     home_score: Optional[int] = None
@@ -76,14 +76,15 @@ class GameResponse(BaseModel):
         return team
 
     @classmethod
-    def from_document(cls, game: Game) -> "GameResponse":
+    async def from_document(cls, game: Game) -> "GameResponse":
+        await game.fetch_all_links()
         home_team = cls._require_team(game.home_team, "home_team")
         away_team = cls._require_team(game.away_team, "away_team")
 
         return cls(
             id=str(game.id),
-            home_team=TeamResponse.from_document(home_team),
-            away_team=TeamResponse.from_document(away_team),
+            home_team=await TeamResponseBase.from_document(home_team),
+            away_team=await TeamResponseBase.from_document(away_team),
             game_date=game.game_date,
             location=game.location,
             home_score=game.home_score,

@@ -1,4 +1,4 @@
-from beanie import PydanticObjectId
+from beanie import PydanticObjectId, WriteRules
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Any, cast, Annotated
 
@@ -7,6 +7,7 @@ from app.models.teams import Team, TeamCreate, TeamResponse, TeamUpdate
 from app.models.games import Game, GameResponse
 
 from auth.auth_user import User, current_active_user
+from auth.auth_role import check_permissions_team
 
 router = APIRouter(prefix="/teams", tags=["teams"])
 
@@ -14,23 +15,23 @@ router = APIRouter(prefix="/teams", tags=["teams"])
 @router.get("/", response_model=list[TeamResponse])
 async def get_teams() -> list[TeamResponse]:
     teams = await Team.find_all().to_list()
-    return [TeamResponse.from_document(team) for team in teams]
+    return [await TeamResponse.from_document(team) for team in teams]
 
 
 @router.get("/{team_id}", response_model=TeamResponse)
 async def get_team(team_id: str) -> TeamResponse:
-    team = await Team.get(team_id)
+    team = await Team.get(team_id, fetch_links=True)
     if team is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Team not found",
         )
-    return TeamResponse.from_document(team)
+    return await TeamResponse.from_document(team)
 
 
 @router.get("/{team_id}/players", response_model=list[PlayerResponse])
 async def get_team_players(team_id: str) -> list[PlayerResponse]:
-    team = await Team.get(team_id)
+    team = await Team.get(team_id, fetch_links=True)
     if team is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -42,7 +43,7 @@ async def get_team_players(team_id: str) -> list[PlayerResponse]:
         fetch_links=True,
     ).to_list()
 
-    return [PlayerResponse.from_document(player) for player in players]
+    return [await PlayerResponse.from_document(player) for player in players]
 
 
 @router.get("/{team_id}/games", response_model=list[GameResponse])
@@ -80,8 +81,9 @@ async def create_team(
         )
 
     team = Team(**payload.model_dump())
+    team.officers.append(current_user)
     await team.insert()
-    return TeamResponse.from_document(team)
+    return await TeamResponse.from_document(team)
 
 
 @router.patch("/{team_id}", response_model=TeamResponse)
@@ -97,13 +99,20 @@ async def update_team(
             detail="Team not found",
         )
 
+    # Check permissions
+    if not await check_permissions_team(team, current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to update this team",
+        )
+
     updates = payload.model_dump(exclude_unset=True)
 
     for field_name, value in updates.items():
         setattr(team, field_name, value)
 
     await team.save()
-    return TeamResponse.from_document(team)
+    return await TeamResponse.from_document(team)
 
 
 @router.delete("/{team_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -115,6 +124,13 @@ async def delete_team(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Team not found",
+        )
+
+    # Check permissions
+    if not await check_permissions_team(team, current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to delete this team",
         )
 
     await team.delete()
