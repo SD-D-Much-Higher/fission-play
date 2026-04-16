@@ -3,21 +3,18 @@ import os
 from pymongo import AsyncMongoClient
 from beanie import init_beanie, Document
 from fastapi_users.db import BeanieBaseUser
-from fastapi_users_db_beanie import BeanieBaseUserDocument
 from fastapi_users_db_beanie import BeanieUserDatabase
+
 
 from dotenv import load_dotenv
 
 from app.models.players import Player
 from app.models.teams import Team
 from app.models.games import Game
+from app.models.users import User
 
 
 load_dotenv()
-
-
-class User(BeanieBaseUserDocument):
-    pass
 
 
 async def get_user_db():

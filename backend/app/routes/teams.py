@@ -1,10 +1,12 @@
 from beanie import PydanticObjectId
-from fastapi import APIRouter, HTTPException, status
-from typing import Any, cast
+from fastapi import APIRouter, HTTPException, status, Depends
+from typing import Any, cast, Annotated
 
 from app.models.players import Player, PlayerResponse
 from app.models.teams import Team, TeamCreate, TeamResponse, TeamUpdate
 from app.models.games import Game, GameResponse
+
+from auth.auth_user import User, current_active_user
 
 router = APIRouter(prefix="/teams", tags=["teams"])
 
@@ -67,7 +69,9 @@ async def get_team_games(team_id: str) -> list[GameResponse]:
 
 
 @router.post("/", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
-async def create_team(payload: TeamCreate) -> TeamResponse:
+async def create_team(
+    current_user: Annotated[User, Depends(current_active_user)], payload: TeamCreate
+) -> TeamResponse:
     existing = await Team.find(Team.name == payload.name).first_or_none()
     if existing is not None:
         raise HTTPException(
@@ -81,7 +85,11 @@ async def create_team(payload: TeamCreate) -> TeamResponse:
 
 
 @router.patch("/{team_id}", response_model=TeamResponse)
-async def update_team(team_id: str, payload: TeamUpdate) -> TeamResponse:
+async def update_team(
+    current_user: Annotated[User, Depends(current_active_user)],
+    team_id: str,
+    payload: TeamUpdate,
+) -> TeamResponse:
     team = await Team.get(team_id)
     if team is None:
         raise HTTPException(
@@ -99,7 +107,9 @@ async def update_team(team_id: str, payload: TeamUpdate) -> TeamResponse:
 
 
 @router.delete("/{team_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_team(team_id: str) -> None:
+async def delete_team(
+    current_user: Annotated[User, Depends(current_active_user)], team_id: str
+) -> None:
     team = await Team.get(team_id)
     if team is None:
         raise HTTPException(

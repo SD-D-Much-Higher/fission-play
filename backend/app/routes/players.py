@@ -7,7 +7,8 @@ from beanie import Link
 from app.models.players import Player, PlayerCreate, PlayerResponse, PlayerUpdate
 from app.models.teams import Team
 
-from auth.auth_user import User, get_current_active_user
+from auth.auth_user import User, current_active_user
+from pydantic import ValidationError
 
 router = APIRouter(prefix="/players", tags=["players"])
 
@@ -31,20 +32,25 @@ async def get_player(player_id: str) -> PlayerResponse:
 
 @router.post("/", response_model=PlayerResponse, status_code=status.HTTP_201_CREATED)
 async def create_player(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[User, Depends(current_active_user)],
     payload: PlayerCreate,
 ) -> PlayerResponse:
     linked_team: Link[Team] | None = None
 
     if payload.team_id is not None:
-        team = await Team.get(payload.team_id)
-        if team is None:
+        try:
+            team = await Team.get(payload.team_id)
+            if team is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Team not found",
+                )
+            linked_team = cast(Link[Team], team)
+        except ValidationError:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Team not found",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid team_id format",
             )
-        linked_team = cast(Link[Team], team)
-
     player = Player(
         first_name=payload.first_name,
         last_name=payload.last_name,
@@ -61,7 +67,7 @@ async def create_player(
 
 @router.patch("/{player_id}", response_model=PlayerResponse)
 async def update_player(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[User, Depends(current_active_user)],
     player_id: str,
     payload: PlayerUpdate,
 ) -> PlayerResponse:
@@ -98,7 +104,7 @@ async def update_player(
 
 @router.delete("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_player(
-    current_user: Annotated[User, Depends(get_current_active_user)], player_id: str
+    current_user: Annotated[User, Depends(current_active_user)], player_id: str
 ) -> None:
     player = await Player.get(player_id)
     if player is None:
