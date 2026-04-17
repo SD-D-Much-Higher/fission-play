@@ -11,7 +11,6 @@ import { scrollToElementOfId } from "../utils/inPageRoutingScroll"
 export default function Home() {
   const scrollToFeaturedTeams = useCallback(() => { scrollToElementOfId("featured-teams") }, [])
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [clubs, setClubs] = useState<TeamResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,20 +29,6 @@ export default function Home() {
         setLoading(false);
       });
   }, []);
-
-  const filteredClubs = useMemo(() => {
-    const query = searchTerm.toLowerCase().trim();
-
-    if (!query) return clubs;
-
-    return clubs.filter((club) => {
-      return (
-        club.name.toLowerCase().includes(query) ||
-        (club.description ?? "").toLowerCase().includes(query) ||
-        club.sport.toLowerCase().includes(query)
-      );
-    });
-  }, [searchTerm, clubs]);
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden flex flex-col items-center justify-start gap-6 pb-20 bg-gray-50">
@@ -79,27 +64,6 @@ export default function Home() {
         </div>
       </section>
 
-
-        <section className="mb-10 text-center">
-          <h1 className="mb-3 text-5xl font-extrabold text-gray-900">
-            Featured Clubs
-          </h1>
-          
-          <div className="w-max h-max flex flex-row items-center justify-start gap-4 pt-4">
-            <p className="z-15 w-max max-w-full">
-              Discover the vibrant club sports community at RPI
-            </p>
-            <button
-              type="button"
-              onClick={scrollToFeaturedTeams}
-              aria-label="Jump to featured teams"
-              className="cursor-pointer hover:text-red-700 transition-opacity-colors duration-300"
-            >
-              <CircleArrowDown className="size-max hero-pulse-arrow " />
-            </button>
-          </div>
-      </section>
-
        {/* Featured Teams */}
        <section id="featured-teams" className="max-w-full mb-10 text-center py-10 px-14 scroll-mt-20">
         <h1 className="mb-3 text-5xl font-extrabold text-gray-900">
@@ -112,17 +76,17 @@ export default function Home() {
         {/* Featured Teams Grid */}
         {/* Content */}
         {loading ? (
-          <section className="rounded-2xl bg-white p-10 text-center shadow-sm">
+          <section className="rounded-2xl bg-white p-10 text-center shadow-sm mt-10">
             <p className="text-gray-600">Loading clubs...</p>
           </section>
         ) : error ? (
-          <section className="rounded-2xl bg-white p-10 text-center shadow-sm">
+          <section className="rounded-2xl bg-white p-10 text-center shadow-sm mt-10">
             <h2 className="text-2xl font-bold text-gray-900">
               Could not load clubs
             </h2>
             <p className="mt-2 text-gray-600">{error}</p>
           </section>
-        ) : filteredClubs.length > 0 ? (
+        ) : clubs.length > 0 ? (
           <section className="max-w-full grid gap-8 md:grid-cols-2 xl:grid-cols-3 mt-10 text-left">
             {clubs.map((club) => (
               <ClubCard key={club.id} club={club} />
