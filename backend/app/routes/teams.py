@@ -1,4 +1,5 @@
-from beanie import PydanticObjectId, WriteRules
+from beanie import PydanticObjectId
+from beanie.operators import Or
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Any, cast, Annotated
 
@@ -55,18 +56,19 @@ async def get_team_games(team_id: str) -> list[GameResponse]:
             detail="Team not found",
         )
 
+    team_object_id = PydanticObjectId(team_id)
     home_team_field = cast(Any, Game.home_team)
     away_team_field = cast(Any, Game.away_team)
 
     games = await Game.find(
-        (
-            (home_team_field.id == PydanticObjectId(team_id))
-            | (away_team_field.id == PydanticObjectId(team_id))
+        Or(
+            home_team_field.id == team_object_id,
+            away_team_field.id == team_object_id,
         ),
         fetch_links=True,
     ).to_list()
 
-    return [GameResponse.from_document(game) for game in games]
+    return [await GameResponse.from_document(game) for game in games]
 
 
 @router.post("/", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
@@ -99,7 +101,6 @@ async def update_team(
             detail="Team not found",
         )
 
-    # Check permissions
     if not await check_permissions_team(team, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -126,7 +127,6 @@ async def delete_team(
             detail="Team not found",
         )
 
-    # Check permissions
     if not await check_permissions_team(team, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

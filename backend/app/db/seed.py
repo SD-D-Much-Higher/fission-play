@@ -1,164 +1,136 @@
-from backend.app.db.database import *
+import os
+import asyncio
+from datetime import datetime, timezone
+
+from dotenv import load_dotenv
+from pymongo import AsyncMongoClient
+from beanie import init_beanie
+
+from app.models.users import User
+from app.models.players import Player
+from app.models.teams import Team, TeamResponse
+from app.models.players import PlayerResponse
+from app.models.games import Game
+
+Team.model_rebuild()
+TeamResponse.model_rebuild()
+Player.model_rebuild()
+PlayerResponse.model_rebuild()
+
+load_dotenv()
 
 
-def seed_database():
-    # Clear existing data
-    users_collection.delete_many({})
-    teams_collection.delete_many({})
-    games_collection.delete_many({})
-    schedules_collection.delete_many({})
-    standings_collection.delete_many({})
+async def seed_database():
+    client = AsyncMongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
+    db_name = os.getenv("DB_NAME", "appdb")
+    db = client[db_name]
 
-    users = [
-        {
-            "_id": "user_001",
-            "name": "Ethan Miller",
-            "email": "millee@rpi.edu",
-            "role": "player",
-            "team_ids": ["team_soccer"],
-        },
-        {
-            "_id": "user_002",
-            "name": "Jordan Lee",
-            "email": "leej@rpi.edu",
-            "role": "player",
-            "team_ids": ["team_soccer"],
-        },
-        {
-            "_id": "user_003",
-            "name": "Chris Patel",
-            "email": "patelc@rpi.edu",
-            "role": "player",
-            "team_ids": ["team_basketball"],
-        },
-        {
-            "_id": "user_004",
-            "name": "Maya Rodriguez",
-            "email": "rodrigm@rpi.edu",
-            "role": "player",
-            "team_ids": ["team_volleyball"],
-        },
-        {
-            "_id": "user_010",
-            "name": "Coach Daniels",
-            "email": "coachd@rpi.edu",
-            "role": "coach",
-            "team_ids": ["team_soccer"],
-        },
-        {
-            "_id": "user_011",
-            "name": "Coach Nguyen",
-            "email": "coachn@rpi.edu",
-            "role": "coach",
-            "team_ids": ["team_basketball"],
-        },
+    await init_beanie(
+        database=db,
+        document_models=[User, Team, Player, Game],
+    )
+
+    await Game.delete_all()
+    await Player.delete_all()
+    await Team.delete_all()
+
+    soccer = Team(
+        name="Men's Club Soccer",
+        sport="Soccer",
+        description="Competitive club soccer team at RPI.",
+        coach_name="Coach Daniels",
+    )
+
+    basketball = Team(
+        name="Men's Club Basketball",
+        sport="Basketball",
+        description="Club basketball team representing RPI.",
+        coach_name="Coach Nguyen",
+    )
+
+    volleyball = Team(
+        name="Men's Club Volleyball",
+        sport="Volleyball",
+        description="RPI club volleyball team.",
+        coach_name="Coach Carter",
+    )
+
+    await soccer.insert()
+    await basketball.insert()
+    await volleyball.insert()
+
+    players = [
+        Player(
+            first_name="Ethan",
+            last_name="Miller",
+            team=soccer,
+            jersey_number=9,
+            position="Forward",
+            year="Sophomore",
+        ),
+        Player(
+            first_name="Jordan",
+            last_name="Lee",
+            team=soccer,
+            jersey_number=7,
+            position="Midfielder",
+            year="Junior",
+        ),
+        Player(
+            first_name="Chris",
+            last_name="Patel",
+            team=basketball,
+            jersey_number=4,
+            position="Guard",
+            year="Senior",
+        ),
+        Player(
+            first_name="Maya",
+            last_name="Rodriguez",
+            team=volleyball,
+            jersey_number=12,
+            position="Setter",
+            year="Sophomore",
+        ),
     ]
 
-    teams = [
-        {
-            "_id": "team_soccer",
-            "name": "RPI Club Soccer",
-            "sport": "Soccer",
-            "school": "Rensselaer Polytechnic Institute",
-            "players": ["user_001", "user_002"],
-            "coach": "user_010",
-        },
-        {
-            "_id": "team_basketball",
-            "name": "RPI Club Basketball",
-            "sport": "Basketball",
-            "school": "Rensselaer Polytechnic Institute",
-            "players": ["user_003"],
-            "coach": "user_011",
-        },
-        {
-            "_id": "team_volleyball",
-            "name": "RPI Club Volleyball",
-            "sport": "Volleyball",
-            "school": "Rensselaer Polytechnic Institute",
-            "players": ["user_004"],
-            "coach": None,
-        },
-        {
-            "_id": "team_union_soccer",
-            "name": "Union Club Soccer",
-            "sport": "Soccer",
-            "school": "Union College",
-            "players": [],
-            "coach": None,
-        },
-    ]
+    for player in players:
+        await player.insert()
 
     games = [
-        {
-            "_id": "game_001",
-            "team_home": "team_soccer",
-            "team_away": "team_union_soccer",
-            "date": "2026-04-02T18:00:00Z",
-            "location": "RPI Harkness Field",
-            "score": {"home": 3, "away": 1},
-            "status": "completed",
-        },
-        {
-            "_id": "game_002",
-            "team_home": "team_basketball",
-            "team_away": "team_union_soccer",
-            "date": "2026-04-05T19:00:00Z",
-            "location": "East Campus Athletic Village (ECAV)",
-            "score": {"home": 0, "away": 0},
-            "status": "scheduled",
-        },
-        {
-            "_id": "game_003",
-            "team_home": "team_volleyball",
-            "team_away": "team_basketball",
-            "date": "2026-04-08T20:00:00Z",
-            "location": "East Campus Athletic Village (ECAV)",
-            "score": {"home": 2, "away": 1},
-            "status": "completed",
-        },
+        Game(
+            home_team=soccer,
+            opponent_name="Union Club Soccer",
+            game_date=datetime(2026, 4, 2, 18, 0, tzinfo=timezone.utc),
+            location="RPI Harkness Field",
+            home_score=3,
+            away_score=1,
+            status="completed",
+        ),
+        Game(
+            home_team=basketball,
+            opponent_name="Union Club Basketball",
+            game_date=datetime(2026, 4, 5, 19, 0, tzinfo=timezone.utc),
+            location="East Campus Athletic Village (ECAV)",
+            status="scheduled",
+        ),
+        Game(
+            home_team=volleyball,
+            away_team=basketball,
+            game_date=datetime(2026, 4, 8, 20, 0, tzinfo=timezone.utc),
+            location="East Campus Athletic Village (ECAV)",
+            home_score=2,
+            away_score=1,
+            status="completed",
+        ),
     ]
 
-    schedules = [
-        {"_id": "schedule_soccer", "team_id": "team_soccer", "games": ["game_001"]},
-        {
-            "_id": "schedule_basketball",
-            "team_id": "team_basketball",
-            "games": ["game_002", "game_003"],
-        },
-    ]
-
-    standings = [
-        {
-            "_id": "standing_soccer_league",
-            "league": "Capital Region Club Soccer",
-            "teams": [
-                {
-                    "team_id": "team_soccer",
-                    "wins": 1,
-                    "losses": 0,
-                    "draws": 0,
-                    "points": 3,
-                },
-                {
-                    "team_id": "team_union_soccer",
-                    "wins": 0,
-                    "losses": 1,
-                    "draws": 0,
-                    "points": 0,
-                },
-            ],
-        }
-    ]
-
-    users_collection.insert_many(users)
-    teams_collection.insert_many(teams)
-    games_collection.insert_many(games)
-    schedules_collection.insert_many(schedules)
-    standings_collection.insert_many(standings)
+    for game in games:
+        await game.insert()
 
     print("DB seeded successfully!")
+    await client.close()
 
 
 if __name__ == "__main__":
-    seed_database()
+    asyncio.run(seed_database())

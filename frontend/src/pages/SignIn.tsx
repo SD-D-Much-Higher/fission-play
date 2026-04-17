@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Navbar from "../components/Navbar"
+import { getTeams, type TeamResponse } from "../api/teams"
 
 export default function SignIn() {
   const navigate = useNavigate()
@@ -8,10 +9,30 @@ export default function SignIn() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [role, setRole] = useState("club-member")
-  const [clubId, setClubId] = useState("mens-basketball")
+  const [clubs, setClubs] = useState<TeamResponse[]>([])
+  const [clubId, setClubId] = useState("")
+  const [loadingClubs, setLoadingClubs] = useState(true)
+
+  useEffect(() => {
+    getTeams()
+      .then((data) => {
+        setClubs(data)
+        if (data.length > 0) {
+          setClubId(data[0].id)
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load clubs for sign in:", err)
+      })
+      .finally(() => {
+        setLoadingClubs(false)
+      })
+  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!clubId && role !== "admin") return
 
     if (role === "club-member") {
       navigate(`/clubs/${clubId}`)
@@ -87,14 +108,20 @@ export default function SignIn() {
                 id="club"
                 value={clubId}
                 onChange={(e) => setClubId(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
+                disabled={loadingClubs}
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white disabled:opacity-60"
               >
-                <option value="mens-basketball">Men&apos;s Basketball</option>
-                <option value="mens-soccer">Men&apos;s Soccer</option>
-                <option value="womens-volleyball">Women&apos;s Volleyball</option>
-                <option value="club-baseball">Club Baseball</option>
-                <option value="badminton">Badminton Club</option>
-                <option value="judo">Judo Club</option>
+                {loadingClubs ? (
+                  <option value="">Loading clubs...</option>
+                ) : clubs.length === 0 ? (
+                  <option value="">No clubs found</option>
+                ) : (
+                  clubs.map((club) => (
+                    <option key={club.id} value={club.id}>
+                      {club.name}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
