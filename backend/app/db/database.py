@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from app.models.players import Player
 from app.models.teams import Team
 from app.models.games import Game
+from app.models.team_stats import TeamStats
 from app.models.users import User
 from app.models.stat_submissions import StatSubmission
 
@@ -30,5 +31,5 @@ async def init_db():
 
     await init_beanie(
         database=client[db_name],
-        document_models=[Player, Team, Game, User, StatSubmission]
+        document_models=[Player, Team, Game, TeamStats, User, StatSubmission]
     )

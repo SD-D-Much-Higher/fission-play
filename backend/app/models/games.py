@@ -3,21 +3,24 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from beanie import Document, Link
-from pydantic import BaseModel, Field, model_validator
+from beanie import Document
+from pydantic import BaseModel, Field
 
-from app.models.teams import Team, TeamResponseBase
+
+class GameScore(BaseModel):
+    home: int
+    away: int
 
 
 class Game(Document):
-    home_team: Link[Team]
-    away_team: Optional[Link[Team]] = None
-    opponent_name: Optional[str] = None
-    game_date: datetime
-    location: Optional[str] = None
-    home_score: Optional[int] = None
-    away_score: Optional[int] = None
-    status: str = "scheduled"
+    id: str
+    teamId: str
+    opponent: str
+    date: str
+    time: str
+    location: str
+    score: Optional[GameScore] = None
+    result: Optional[str] = None
 
     class Settings:
         name = "games"
@@ -25,84 +28,64 @@ class Game(Document):
 
 
 class GameCreate(BaseModel):
-    home_team_id: str
-    away_team_id: Optional[str] = None
-    opponent_name: Optional[str] = None
-    game_date: datetime
-    location: Optional[str] = None
-    home_score: Optional[int] = None
-    away_score: Optional[int] = None
-    status: str = "scheduled"
-
-    @model_validator(mode="after")
-    def validate_opponent(self) -> "GameCreate":
-        if not self.away_team_id and not self.opponent_name:
-            raise ValueError("Either away_team_id or opponent_name must be provided")
-        if self.away_team_id and self.opponent_name:
-            raise ValueError("Provide only one of away_team_id or opponent_name")
-        if self.away_team_id and self.home_team_id == self.away_team_id:
-            raise ValueError("home_team_id and away_team_id must be different")
-        return self
+    id: str
+    teamId: str
+    opponent: str
+    date: str
+    time: str
+    location: str
+    score: Optional[GameScore] = None
+    result: Optional[str] = None
 
 
 class GameUpdate(BaseModel):
-    home_team_id: Optional[str] = None
-    away_team_id: Optional[str] = None
-    opponent_name: Optional[str] = None
-    game_date: Optional[datetime] = None
+    teamId: Optional[str] = None
+    opponent: Optional[str] = None
+    date: Optional[str] = None
+    time: Optional[str] = None
     location: Optional[str] = None
-    home_score: Optional[int] = None
-    away_score: Optional[int] = None
-    status: Optional[str] = None
+    score: Optional[GameScore] = None
+    result: Optional[str] = None
 
-    @model_validator(mode="after")
-    def validate_opponent(self) -> "GameUpdate":
-        if self.away_team_id and self.opponent_name:
-            raise ValueError("Provide only one of away_team_id or opponent_name")
-        if (
-            self.home_team_id is not None
-            and self.away_team_id is not None
-            and self.home_team_id == self.away_team_id
-        ):
-            raise ValueError("home_team_id and away_team_id must be different")
-        return self
+
+def _legacy_game_datetime(date: str, time: str) -> str:
+    parsed = datetime.strptime(f"{date} {time}", "%Y-%m-%d %I:%M %p")
+    return parsed.isoformat() + "Z"
 
 
 class GameResponse(BaseModel):
+    # mockData-compatible fields
     id: str = Field(..., alias="id")
-    home_team: TeamResponseBase
-    away_team: Optional[TeamResponseBase] = None
-    opponent_name: Optional[str] = None
-    game_date: datetime
-    location: Optional[str] = None
+    teamId: str
+    opponent: str
+    date: str
+    time: str
+    location: str
+    score: Optional[GameScore] = None
+    result: Optional[str] = None
+    # legacy compatibility fields (existing frontend usage)
+    opponent_name: str
+    game_date: str
     home_score: Optional[int] = None
     away_score: Optional[int] = None
-    status: str
-
-    @staticmethod
-    def _require_team(team: Team | Link[Team], field_name: str) -> Team:
-        if not isinstance(team, Team):
-            raise ValueError(f"{field_name} link was not fetched")
-        return team
+    away_team: None = None
 
     @classmethod
     async def from_document(cls, game: Game) -> "GameResponse":
-        await game.fetch_all_links()
-        home_team = cls._require_team(game.home_team, "home_team")
-
-        away_team_response = None
-        if game.away_team is not None:
-            away_team = cls._require_team(game.away_team, "away_team")
-            away_team_response = await TeamResponseBase.from_document(away_team)
+        home_score = game.score.home if game.score else None
+        away_score = game.score.away if game.score else None
 
         return cls(
-            id=str(game.id),
-            home_team=await TeamResponseBase.from_document(home_team),
-            away_team=away_team_response,
-            opponent_name=game.opponent_name,
-            game_date=game.game_date,
+            id=game.id,
+            teamId=game.teamId,
+            opponent=game.opponent,
+            date=game.date,
+            time=game.time,
             location=game.location,
-            home_score=game.home_score,
-            away_score=game.away_score,
-            status=game.status,
+            score=game.score,
+            result=game.result,
+            opponent_name=game.opponent,
+            game_date=_legacy_game_datetime(game.date, game.time),
+            home_score=home_score,
+            away_score=away_score,
         )

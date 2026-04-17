@@ -20,9 +20,9 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/request-submitted" element={<RequestSubmitted />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/clubs/:clubId" element={<ClubDetail />} />
-        <Route path="/clubs/:clubId/submit-stats" element={<SubmitStats />} />
-        <Route path="/dashboard/club/:clubId" element={<ClubDashboard />} />
+        <Route path="/clubs/:teamId" element={<ClubDetail />} />
+        <Route path="/clubs/:teamId/submit-stats" element={<SubmitStats />} />
+        <Route path="/dashboard/club/:teamId" element={<ClubDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>

@@ -19,7 +19,7 @@ const mockUser = {
 type TabKey = "overview" | "schedule" | "roster" | "team-stats" | "approval-queue"
 
 export default function ClubDashboardPage() {
-  const { clubId } = useParams()
+  const { teamId } = useParams()
   const [activeTab, setActiveTab] = useState<TabKey>("overview")
   const [showAddGameModal, setShowAddGameModal] = useState(false)
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false)
@@ -31,15 +31,15 @@ export default function ClubDashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!clubId) return
+    if (!teamId) return
 
     setLoading(true)
 
     Promise.all([
-      getTeamById(clubId),
-      getTeamPlayers(clubId),
-      getTeamGames(clubId),
-      getPendingStats(clubId),
+      getTeamById(teamId),
+      getTeamPlayers(teamId),
+      getTeamGames(teamId),
+      getPendingStats(teamId),
     ])
       .then(([team, players, games, pending]) => {
         setClub(team)
@@ -57,7 +57,7 @@ export default function ClubDashboardPage() {
       .finally(() => {
         setLoading(false)
       })
-  }, [clubId])
+  }, [teamId])
 
   const isOfficer = mockUser.role === "officer"
 

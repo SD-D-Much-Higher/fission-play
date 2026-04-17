@@ -1,0 +1,86 @@
+[
+  {
+    "id": "p1",
+    "teamId": "mens-basketball",
+    "name": "Jordan Banks",
+    "number": 12,
+    "position": "Guard",
+    "status": "active",
+    "stats": {
+      "gamesPlayed": 8,
+      "points": 120,
+      "rebounds": 35,
+      "assists": 28
+    }
+  },
+  {
+    "id": "p2",
+    "teamId": "mens-basketball",
+    "name": "Marcus Lee",
+    "number": 23,
+    "position": "Forward",
+    "status": "active",
+    "stats": {
+      "gamesPlayed": 8,
+      "points": 98,
+      "rebounds": 52,
+      "assists": 12
+    }
+  },
+  {
+    "id": "p3",
+    "teamId": "mens-soccer",
+    "name": "Ethan Cruz",
+    "number": 10,
+    "position": "Midfielder",
+    "status": "active",
+    "stats": {
+      "gamesPlayed": 7,
+      "points": 6,
+      "rebounds": 0,
+      "assists": 4
+    }
+  },
+  {
+    "id": "p4",
+    "teamId": "mens-soccer",
+    "name": "Noah Patel",
+    "number": 7,
+    "position": "Forward",
+    "status": "active",
+    "stats": {
+      "gamesPlayed": 7,
+      "points": 8,
+      "rebounds": 0,
+      "assists": 2
+    }
+  },
+  {
+    "id": "p5",
+    "teamId": "womens-volleyball",
+    "name": "Maya Thompson",
+    "number": 5,
+    "position": "Setter",
+    "status": "active",
+    "stats": {
+      "gamesPlayed": 9,
+      "points": 32,
+      "rebounds": 0,
+      "assists": 41
+    }
+  },
+  {
+    "id": "p6",
+    "teamId": "womens-volleyball",
+    "name": "Lila Chen",
+    "number": 14,
+    "position": "Outside Hitter",
+    "status": "active",
+    "stats": {
+      "gamesPlayed": 9,
+      "points": 67,
+      "rebounds": 0,
+      "assists": 11
+    }
+  }
+]

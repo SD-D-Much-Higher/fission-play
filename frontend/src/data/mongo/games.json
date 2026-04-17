@@ -1,0 +1,65 @@
+[
+  {
+    "id": "g1",
+    "teamId": "mens-basketball",
+    "opponent": "Union College",
+    "date": "2026-03-20",
+    "time": "7:00 PM",
+    "location": "Houston Field House",
+    "score": {
+      "home": 72,
+      "away": 65
+    },
+    "result": "win"
+  },
+  {
+    "id": "g2",
+    "teamId": "mens-basketball",
+    "opponent": "Siena Club Team",
+    "date": "2026-03-28",
+    "time": "6:00 PM",
+    "location": "Siena Gymnasium"
+  },
+  {
+    "id": "g3",
+    "teamId": "mens-soccer",
+    "opponent": "Union College",
+    "date": "2026-03-22",
+    "time": "5:00 PM",
+    "location": "ECAV Stadium",
+    "score": {
+      "home": 3,
+      "away": 1
+    },
+    "result": "win"
+  },
+  {
+    "id": "g4",
+    "teamId": "mens-soccer",
+    "opponent": "Skidmore Club Team",
+    "date": "2026-03-30",
+    "time": "4:00 PM",
+    "location": "Skidmore Turf Field"
+  },
+  {
+    "id": "g5",
+    "teamId": "womens-volleyball",
+    "opponent": "RIT Club Volleyball",
+    "date": "2026-03-24",
+    "time": "6:30 PM",
+    "location": "East Campus Arena",
+    "score": {
+      "home": 3,
+      "away": 2
+    },
+    "result": "win"
+  },
+  {
+    "id": "g6",
+    "teamId": "womens-volleyball",
+    "opponent": "Union College",
+    "date": "2026-03-29",
+    "time": "1:00 PM",
+    "location": "Union Gymnasium"
+  }
+]

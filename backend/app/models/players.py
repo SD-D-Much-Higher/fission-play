@@ -1,77 +1,87 @@
-from beanie import Document, Link
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
-from bson import ObjectId
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from beanie import Document
+from pydantic import BaseModel, Field
 
-from app.models.teams import Team, TeamResponseBase
+
+class PlayerStats(BaseModel):
+    gamesPlayed: int = 0
+    points: int = 0
+    rebounds: int = 0
+    assists: int = 0
 
 
 class Player(Document):
-    first_name: str
-    last_name: str
-    team: Link["Team"]
-    jersey_number: Optional[int] = None
+    id: str
+    teamId: str
+    name: str
+    number: Optional[int] = None
     position: Optional[str] = None
-    year: Optional[str] = None
+    status: str = "active"
+    stats: PlayerStats = Field(default_factory=PlayerStats)
 
     class Settings:
         name = "players"
         validate_on_save = True
-        max_nesting_depth = 2
 
 
 class PlayerCreate(BaseModel):
-    first_name: str
-    last_name: str
-    team_id: str
-    jersey_number: Optional[int] = None
+    id: str
+    teamId: str
+    name: str
+    number: Optional[int] = None
     position: Optional[str] = None
-    year: Optional[str] = None
+    status: str = "active"
+    stats: PlayerStats = Field(default_factory=PlayerStats)
 
 
 class PlayerUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    team_id: str
-    jersey_number: Optional[int] = None
+    teamId: Optional[str] = None
+    name: Optional[str] = None
+    number: Optional[int] = None
     position: Optional[str] = None
-    year: Optional[str] = None
+    status: Optional[str] = None
+    stats: Optional[PlayerStats] = None
 
 
-class PlayerResponseBase(BaseModel):
+def _split_name(full_name: str) -> tuple[str, str]:
+    tokens = full_name.strip().split()
+    if not tokens:
+        return "", ""
+    if len(tokens) == 1:
+        return tokens[0], ""
+    return tokens[0], " ".join(tokens[1:])
+
+
+class PlayerResponse(BaseModel):
+    # mockData-compatible fields
     id: str = Field(..., alias="id")
+    teamId: str
+    name: str
+    number: Optional[int] = None
+    position: Optional[str] = None
+    status: str
+    stats: PlayerStats
+    # legacy compatibility fields (existing frontend usage)
     first_name: str
     last_name: str
     jersey_number: Optional[int] = None
-    position: Optional[str] = None
     year: Optional[str] = None
-
-    @classmethod
-    async def from_document(cls, player: Player) -> "PlayerResponseBase":
-        return cls(
-            id=str(player.id),
-            first_name=player.first_name,
-            last_name=player.last_name,
-            jersey_number=player.jersey_number,
-            position=player.position,
-            year=player.year,
-        )
-
-
-class PlayerResponse(PlayerResponseBase):
-    team: TeamResponseBase
+    team: dict[str, str]
 
     @classmethod
     async def from_document(cls, player: Player) -> "PlayerResponse":
-        await player.fetch_all_links()
-
+        first_name, last_name = _split_name(player.name)
         return cls(
-            id=str(player.id),
-            first_name=player.first_name,
-            last_name=player.last_name,
-            team=await TeamResponseBase.from_document(player.team),  # type: ignore
-            jersey_number=player.jersey_number,
+            id=player.id,
+            teamId=player.teamId,
+            name=player.name,
+            number=player.number,
             position=player.position,
-            year=player.year,
+            status=player.status,
+            stats=player.stats,
+            first_name=first_name,
+            last_name=last_name,
+            jersey_number=player.number,
+            team={"id": player.teamId},
         )

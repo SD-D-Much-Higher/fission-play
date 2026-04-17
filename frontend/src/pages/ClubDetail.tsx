@@ -6,7 +6,7 @@ import { getTeamById, getTeamPlayers, getTeamGames } from "../api/teams"
 type TabKey = "schedule" | "roster" | "player-stats" | "team-stats"
 
 export default function ClubDetailPage() {
-  const { clubId } = useParams()
+  const { teamId } = useParams()
   const [activeTab, setActiveTab] = useState<TabKey>("schedule")
   const [club, setClub] = useState<any>(null)
   const [clubPlayers, setClubPlayers] = useState<any[]>([])
@@ -14,14 +14,14 @@ export default function ClubDetailPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!clubId) return
+    if (!teamId) return
 
     setLoading(true)
 
     Promise.all([
-      getTeamById(clubId),
-      getTeamPlayers(clubId),
-      getTeamGames(clubId),
+      getTeamById(teamId),
+      getTeamPlayers(teamId),
+      getTeamGames(teamId),
     ])
       .then(([team, players, games]) => {
         setClub(team)
@@ -37,7 +37,7 @@ export default function ClubDetailPage() {
       .finally(() => {
         setLoading(false)
       })
-  }, [clubId])
+  }, [teamId])
 
   if (loading) {
     return (

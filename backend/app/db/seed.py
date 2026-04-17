@@ -1,6 +1,7 @@
 import os
 import asyncio
-from datetime import datetime, timezone
+import json
+from pathlib import Path
 
 from dotenv import load_dotenv
 from pymongo import AsyncMongoClient
@@ -8,16 +9,25 @@ from beanie import init_beanie
 
 from app.models.users import User
 from app.models.players import Player
-from app.models.teams import Team, TeamResponse
-from app.models.players import PlayerResponse
+from app.models.teams import Team
 from app.models.games import Game
+from app.models.team_stats import TeamStats
 
 Team.model_rebuild()
-TeamResponse.model_rebuild()
 Player.model_rebuild()
-PlayerResponse.model_rebuild()
 
 load_dotenv()
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+FRONTEND_MONGO_DIR = REPO_ROOT / "frontend" / "src" / "data" / "mongo"
+
+
+def load_json_array(path: Path) -> list[dict]:
+    with path.open("r", encoding="utf-8") as file:
+        payload = json.load(file)
+    if not isinstance(payload, list):
+        raise ValueError(f"Expected JSON array in {path}")
+    return payload
 
 
 async def seed_database():
@@ -27,106 +37,30 @@ async def seed_database():
 
     await init_beanie(
         database=db,
-        document_models=[User, Team, Player, Game],
+        document_models=[User, Team, Player, Game, TeamStats],
     )
 
+    await TeamStats.delete_all()
     await Game.delete_all()
     await Player.delete_all()
     await Team.delete_all()
 
-    soccer = Team(
-        name="Men's Club Soccer",
-        sport="Soccer",
-        description="Competitive club soccer team at RPI.",
-        coach_name="Coach Daniels",
-    )
+    teams_payload = load_json_array(FRONTEND_MONGO_DIR / "clubs.json")
+    players_payload = load_json_array(FRONTEND_MONGO_DIR / "players.json")
+    games_payload = load_json_array(FRONTEND_MONGO_DIR / "games.json")
+    team_stats_payload = load_json_array(FRONTEND_MONGO_DIR / "teamStats.json")
 
-    basketball = Team(
-        name="Men's Club Basketball",
-        sport="Basketball",
-        description="Club basketball team representing RPI.",
-        coach_name="Coach Nguyen",
-    )
+    for team_data in teams_payload:
+        await Team(**team_data).insert()
 
-    volleyball = Team(
-        name="Men's Club Volleyball",
-        sport="Volleyball",
-        description="RPI club volleyball team.",
-        coach_name="Coach Carter",
-    )
+    for player_data in players_payload:
+        await Player(**player_data).insert()
 
-    await soccer.insert()
-    await basketball.insert()
-    await volleyball.insert()
+    for game_data in games_payload:
+        await Game(**game_data).insert()
 
-    players = [
-        Player(
-            first_name="Ethan",
-            last_name="Miller",
-            team=soccer,
-            jersey_number=9,
-            position="Forward",
-            year="Sophomore",
-        ),
-        Player(
-            first_name="Jordan",
-            last_name="Lee",
-            team=soccer,
-            jersey_number=7,
-            position="Midfielder",
-            year="Junior",
-        ),
-        Player(
-            first_name="Chris",
-            last_name="Patel",
-            team=basketball,
-            jersey_number=4,
-            position="Guard",
-            year="Senior",
-        ),
-        Player(
-            first_name="Maya",
-            last_name="Rodriguez",
-            team=volleyball,
-            jersey_number=12,
-            position="Setter",
-            year="Sophomore",
-        ),
-    ]
-
-    for player in players:
-        await player.insert()
-
-    games = [
-        Game(
-            home_team=soccer,
-            opponent_name="Union Club Soccer",
-            game_date=datetime(2026, 4, 2, 18, 0, tzinfo=timezone.utc),
-            location="RPI Harkness Field",
-            home_score=3,
-            away_score=1,
-            status="completed",
-        ),
-        Game(
-            home_team=basketball,
-            opponent_name="Union Club Basketball",
-            game_date=datetime(2026, 4, 5, 19, 0, tzinfo=timezone.utc),
-            location="East Campus Athletic Village (ECAV)",
-            status="scheduled",
-        ),
-        Game(
-            home_team=volleyball,
-            away_team=basketball,
-            game_date=datetime(2026, 4, 8, 20, 0, tzinfo=timezone.utc),
-            location="East Campus Athletic Village (ECAV)",
-            home_score=2,
-            away_score=1,
-            status="completed",
-        ),
-    ]
-
-    for game in games:
-        await game.insert()
+    for stats_data in team_stats_payload:
+        await TeamStats(**stats_data).insert()
 
     print("DB seeded successfully!")
     await client.close()

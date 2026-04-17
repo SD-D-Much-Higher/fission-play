@@ -26,7 +26,7 @@ const supportedStatClubs = [
 ]
 
 export default function SubmitStats() {
-  const { clubId } = useParams()
+  const { teamId } = useParams()
   const navigate = useNavigate()
 
   const [club, setClub] = useState<any>(null)
@@ -41,14 +41,14 @@ export default function SubmitStats() {
   const [assists, setAssists] = useState("")
 
   useEffect(() => {
-    if (!clubId) return
+    if (!teamId) return
 
     setLoading(true)
 
     Promise.all([
-      getTeamById(clubId),
-      getTeamPlayers(clubId),
-      getTeamGames(clubId),
+      getTeamById(teamId),
+      getTeamPlayers(teamId),
+      getTeamGames(teamId),
     ])
       .then(([team, players, games]) => {
         setClub(team)
@@ -64,17 +64,17 @@ export default function SubmitStats() {
       .finally(() => {
         setLoading(false)
       })
-  }, [clubId])
+  }, [teamId])
 
   const statsSupported = club ? supportedStatClubs.includes(club.name) : false
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!clubId || !playerId || !gameId) return
+    if (!teamId || !playerId || !gameId) return
 
     await submitStats({
-      team_id: clubId,
+      team_id: teamId,
       game_id: gameId,
       player_id: playerId,
       sport: club.name,
@@ -85,7 +85,7 @@ export default function SubmitStats() {
       },
     })
 
-    navigate(`/clubs/${clubId}`)
+    navigate(`/clubs/${teamId}`)
   }
 
   if (loading) {
@@ -117,7 +117,7 @@ export default function SubmitStats() {
       <main className="mx-auto max-w-3xl px-4 py-12">
         <div className="mb-6">
           <Link
-            to={`/clubs/${clubId}`}
+            to={`/clubs/${teamId}`}
             className="text-sm font-medium text-red-600 hover:text-red-700"
           >
             ← Back to Club Page

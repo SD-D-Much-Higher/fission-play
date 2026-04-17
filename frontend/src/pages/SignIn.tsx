@@ -10,7 +10,7 @@ export default function SignIn() {
   const [password, setPassword] = useState("")
   const [role, setRole] = useState("club-member")
   const [clubs, setClubs] = useState<TeamResponse[]>([])
-  const [clubId, setClubId] = useState("")
+  const [teamId, setClubId] = useState("")
   const [loadingClubs, setLoadingClubs] = useState(true)
 
   useEffect(() => {
@@ -32,15 +32,15 @@ export default function SignIn() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!clubId && role !== "admin") return
+    if (!teamId && role !== "admin") return
 
     if (role === "club-member") {
-      navigate(`/clubs/${clubId}`)
+      navigate(`/clubs/${teamId}`)
       return
     }
 
     if (role === "officer") {
-      navigate(`/dashboard/club/${clubId}`)
+      navigate(`/dashboard/club/${teamId}`)
       return
     }
 
@@ -106,7 +106,7 @@ export default function SignIn() {
               </label>
               <select
                 id="club"
-                value={clubId}
+                value={teamId}
                 onChange={(e) => setClubId(e.target.value)}
                 disabled={loadingClubs}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white disabled:opacity-60"

@@ -13,9 +13,7 @@ async def check_permissions_team(
     if user.is_superuser:
         return True
 
-    await team.fetch_link(Team.officers)
-
-    if user in team.officers:
+    if str(user.id) in team.officerIds:
         return True
 
     return False
@@ -31,9 +29,8 @@ async def check_permissions_player(
     if user.is_superuser:
         return True
 
-    team = await player.fetch_link(Player.team)
-
-    if user in team.officers:
+    team = await Team.get(player.teamId)
+    if team is not None and str(user.id) in team.officerIds:
         return True
 
     return False

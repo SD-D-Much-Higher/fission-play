@@ -1,0 +1,26 @@
+[
+  {
+    "teamId": "mens-basketball",
+    "wins": 6,
+    "losses": 2,
+    "winPercentage": 75,
+    "activeRoster": 18,
+    "avgPointsFor": 78
+  },
+  {
+    "teamId": "mens-soccer",
+    "wins": 5,
+    "losses": 2,
+    "winPercentage": 71,
+    "activeRoster": 22,
+    "avgPointsFor": 2.4
+  },
+  {
+    "teamId": "womens-volleyball",
+    "wins": 7,
+    "losses": 3,
+    "winPercentage": 70,
+    "activeRoster": 18,
+    "avgPointsFor": 3
+  }
+]

@@ -55,7 +55,7 @@ class StatSubmissionResponse(BaseModel):
             team_id=str(submission.team.id),  # type: ignore
             team_name=submission.team.name,   # type: ignore
             player_id=str(submission.player.id),  # type: ignore
-            player_name=f"{submission.player.first_name} {submission.player.last_name}",  # type: ignore
+            player_name=submission.player.name,  # type: ignore
             sport=submission.sport,
             stats=submission.stats,
             status=submission.status,
