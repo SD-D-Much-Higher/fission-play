@@ -11,7 +11,9 @@ from app.models.stat_submissions import (
 from app.models.teams import Team
 from app.models.games import Game
 from app.models.players import Player
-from auth.auth_user import User, current_active_user
+from app.models.users import User
+from auth.auth_user import current_active_user
+from auth.auth_role import check_permissions_team
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -25,7 +27,7 @@ async def submit_stats(
     payload: StatSubmissionCreate,
     current_user: Annotated[User, Depends(current_active_user)],
 ) -> StatSubmissionResponse:
-    team = await Team.get(payload.team_id)
+    team = await Team.get(payload.team_id, fetch_links=True)
     if team is None:
         raise HTTPException(status_code=404, detail="Team not found")
 
@@ -36,6 +38,23 @@ async def submit_stats(
     player = await Player.get(payload.player_id, fetch_links=True)
     if player is None:
         raise HTTPException(status_code=404, detail="Player not found")
+
+    # Officer/admin can submit for anyone on their team
+    if await check_permissions_team(team, current_user):
+        pass
+    else:
+        # Regular club member can only submit for their own linked player profile
+        if player.user is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This player is not linked to a user account",
+            )
+
+        if str(player.user.id) != str(current_user.id):  # type: ignore
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Club members can only submit stats for themselves",
+            )
 
     submission = StatSubmission(
         team=cast(Link[Team], team),
@@ -65,11 +84,33 @@ async def get_pending_submissions(team_id: str) -> list[StatSubmissionResponse]:
         fetch_links=True,
     ).to_list()
 
-    filtered = [
-        submission
-        for submission in submissions
-        if str(submission.team.ref.id) == team_id
-    ]
+    filtered = []
+    for submission in submissions:
+        await submission.fetch_all_links()
+        if str(submission.team.id) == team_id:  # type: ignore
+            filtered.append(submission)
+        return [await StatSubmissionResponse.from_document(s) for s in filtered]
+
+
+@router.get(
+    "/team/{team_id}/approved",
+    response_model=list[StatSubmissionResponse],
+)
+async def get_approved_submissions(team_id: str) -> list[StatSubmissionResponse]:
+    team = await Team.get(team_id)
+    if team is None:
+        raise HTTPException(status_code=404, detail="Team not found")
+
+    submissions = await StatSubmission.find(
+        StatSubmission.status == "approved",
+        fetch_links=True,
+    ).to_list()
+
+    filtered = []
+    for submission in submissions:
+        await submission.fetch_all_links()
+        if str(submission.team.id) == team_id:  # type: ignore
+            filtered.append(submission)
 
     return [await StatSubmissionResponse.from_document(s) for s in filtered]
 

@@ -2,8 +2,21 @@ import { useEffect, useState, type ReactNode } from "react"
 import { Link, useParams } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import { getTeamById, getTeamPlayers, getTeamGames } from "../api/teams"
+import {
+  getApprovedStats,
+  type StatSubmissionResponse,
+} from "../api/stats"
 
 type TabKey = "schedule" | "roster" | "player-stats" | "team-stats"
+
+type AggregatedPlayerStat = {
+  player_id: string
+  player_name: string
+  games: number
+  points: number
+  rebounds: number
+  assists: number
+}
 
 export default function ClubDetailPage() {
   const { clubId } = useParams()
@@ -11,6 +24,7 @@ export default function ClubDetailPage() {
   const [club, setClub] = useState<any>(null)
   const [clubPlayers, setClubPlayers] = useState<any[]>([])
   const [clubGames, setClubGames] = useState<any[]>([])
+  const [approvedStats, setApprovedStats] = useState<StatSubmissionResponse[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -22,22 +36,68 @@ export default function ClubDetailPage() {
       getTeamById(clubId),
       getTeamPlayers(clubId),
       getTeamGames(clubId),
+      getApprovedStats(clubId),
     ])
-      .then(([team, players, games]) => {
+      .then(([team, players, games, approved]) => {
         setClub(team)
         setClubPlayers(players)
         setClubGames(games)
+        setApprovedStats(approved ?? [])
       })
       .catch((err) => {
         console.error("Failed to load club detail:", err)
         setClub(null)
         setClubPlayers([])
         setClubGames([])
+        setApprovedStats([])
       })
       .finally(() => {
         setLoading(false)
       })
   }, [clubId])
+
+  const role = localStorage.getItem("role")
+  const canViewDashboard = role === "officer" || role === "admin"
+
+  const playerStatsMap = approvedStats.reduce(
+    (acc, submission) => {
+      const existing = acc[submission.player_id] ?? {
+        player_id: submission.player_id,
+        player_name: submission.player_name,
+        games: 0,
+        points: 0,
+        rebounds: 0,
+        assists: 0,
+      }
+
+      existing.games += 1
+      existing.points += Number(submission.stats.points ?? 0)
+      existing.rebounds += Number(submission.stats.rebounds ?? 0)
+      existing.assists += Number(submission.stats.assists ?? 0)
+
+      acc[submission.player_id] = existing
+      return acc
+    },
+    {} as Record<string, AggregatedPlayerStat>
+  )
+
+  const playerStatsList = Object.values(playerStatsMap)
+
+  const teamStats = approvedStats.reduce(
+    (acc, submission) => {
+      acc.games += 1
+      acc.points += Number(submission.stats.points ?? 0)
+      acc.rebounds += Number(submission.stats.rebounds ?? 0)
+      acc.assists += Number(submission.stats.assists ?? 0)
+      return acc
+    },
+    {
+      games: 0,
+      points: 0,
+      rebounds: 0,
+      assists: 0,
+    }
+  )
 
   if (loading) {
     return (
@@ -105,12 +165,14 @@ export default function ClubDetailPage() {
                 Submit Stats
               </Link>
 
-              <Link
-                to={`/dashboard/club/${club.id}`}
-                className="rounded-xl border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
-              >
-                Officer Dashboard
-              </Link>
+              {canViewDashboard && (
+                <Link
+                  to={`/dashboard/club/${club.id}`}
+                  className="rounded-xl border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50"
+                >
+                  Officer Dashboard
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -226,7 +288,9 @@ export default function ClubDetailPage() {
                         </td>
                         <td className="px-4 py-3">{player.position ?? "-"}</td>
                         <td className="px-4 py-3">{player.year ?? "-"}</td>
-                        <td className="px-4 py-3">-</td>
+                        <td className="px-4 py-3">
+                          {playerStatsMap[player.id]?.games ?? 0}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -238,13 +302,63 @@ export default function ClubDetailPage() {
 
         {activeTab === "player-stats" && (
           <SectionCard title="Player Stats">
-            <p className="text-gray-500">Stats coming soon</p>
+            {playerStatsList.length === 0 ? (
+              <p className="text-gray-500">No approved player stats yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left">
+                  <thead className="border-b border-gray-200 text-sm text-gray-500">
+                    <tr>
+                      <th className="px-4 py-3">Player</th>
+                      <th className="px-4 py-3">Games</th>
+                      <th className="px-4 py-3">Points</th>
+                      <th className="px-4 py-3">Rebounds</th>
+                      <th className="px-4 py-3">Assists</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {playerStatsList.map((player) => (
+                      <tr key={player.player_id} className="border-b border-gray-100">
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          {player.player_name}
+                        </td>
+                        <td className="px-4 py-3">{player.games}</td>
+                        <td className="px-4 py-3">{player.points}</td>
+                        <td className="px-4 py-3">{player.rebounds}</td>
+                        <td className="px-4 py-3">{player.assists}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </SectionCard>
         )}
 
         {activeTab === "team-stats" && (
           <SectionCard title="Team Stats">
-            <p className="text-gray-500">Stats coming soon</p>
+            {approvedStats.length === 0 ? (
+              <p className="text-gray-500">No approved team stats yet.</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div className="rounded-xl border border-gray-200 p-4">
+                  <p className="text-sm text-gray-500">Approved Entries</p>
+                  <p className="text-2xl font-bold text-gray-900">{teamStats.games}</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 p-4">
+                  <p className="text-sm text-gray-500">Total Points</p>
+                  <p className="text-2xl font-bold text-gray-900">{teamStats.points}</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 p-4">
+                  <p className="text-sm text-gray-500">Total Rebounds</p>
+                  <p className="text-2xl font-bold text-gray-900">{teamStats.rebounds}</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 p-4">
+                  <p className="text-sm text-gray-500">Total Assists</p>
+                  <p className="text-2xl font-bold text-gray-900">{teamStats.assists}</p>
+                </div>
+              </div>
+            )}
           </SectionCard>
         )}
       </div>

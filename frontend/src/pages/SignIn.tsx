@@ -1,51 +1,91 @@
 import { Link, useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Navbar from "../components/Navbar"
-import { getTeams, type TeamResponse } from "../api/teams"
+import { apiFetch } from "../lib/api"
+
+type CurrentUser = {
+  id: string
+  email: string
+  full_name?: string | null
+  requested_role?: string | null
+  club_id?: string | null
+}
 
 export default function SignIn() {
   const navigate = useNavigate()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState("club-member")
-  const [clubs, setClubs] = useState<TeamResponse[]>([])
-  const [clubId, setClubId] = useState("")
-  const [loadingClubs, setLoadingClubs] = useState(true)
+  const [error, setError] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => {
-    getTeams()
-      .then((data) => {
-        setClubs(data)
-        if (data.length > 0) {
-          setClubId(data[0].id)
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load clubs for sign in:", err)
-      })
-      .finally(() => {
-        setLoadingClubs(false)
-      })
-  }, [])
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
 
-    if (!clubId && role !== "admin") return
-
-    if (role === "club-member") {
-      navigate(`/clubs/${clubId}`)
+    if (!email || !password) {
+      setError("Please enter your email and password.")
       return
     }
 
-    if (role === "officer") {
-      navigate(`/dashboard/club/${clubId}`)
-      return
-    }
+    setSubmitting(true)
 
-    if (role === "admin") {
-      navigate("/admin")
+    try {
+      const formData = new URLSearchParams()
+      formData.append("username", email)
+      formData.append("password", password)
+
+      const response = await fetch("http://127.0.0.1:8000/auth/jwt/login", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        let message = "Sign in failed."
+        try {
+          const data = await response.json()
+          message = data.detail || message
+        } catch {
+          //
+        }
+        throw new Error(message)
+      }
+
+      const data = await response.json()
+      localStorage.setItem("access_token", data.access_token)
+
+      const me = await apiFetch<CurrentUser>("/users/me")
+
+      localStorage.setItem("email", me.email)
+      localStorage.setItem("userId", me.id)
+      localStorage.setItem("role", me.requested_role ?? "club-member")
+
+      if (me.club_id) {
+        localStorage.setItem("clubId", me.club_id)
+      } else {
+        localStorage.removeItem("clubId")
+      }
+
+      if (me.requested_role === "admin") {
+        navigate("/admin")
+        return
+      }
+
+      if (me.requested_role === "officer" && me.club_id) {
+        navigate(`/dashboard/club/${me.club_id}`)
+        return
+      }
+
+      if (me.club_id) {
+        navigate(`/clubs/${me.club_id}`)
+        return
+      }
+
+      navigate("/")
+    } catch (err: any) {
+      setError(err.message || "Sign in failed.")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -64,10 +104,7 @@ export default function SignIn() {
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label
-                htmlFor="email"
-                className="mb-2 block text-base font-semibold text-gray-900"
-              >
+              <label htmlFor="email" className="mb-2 block text-base font-semibold text-gray-900">
                 Email
               </label>
               <input
@@ -81,10 +118,7 @@ export default function SignIn() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="mb-2 block text-base font-semibold text-gray-900"
-              >
+              <label htmlFor="password" className="mb-2 block text-base font-semibold text-gray-900">
                 Password
               </label>
               <input
@@ -97,58 +131,18 @@ export default function SignIn() {
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="club"
-                className="mb-2 block text-base font-semibold text-gray-900"
-              >
-                Club
-              </label>
-              <select
-                id="club"
-                value={clubId}
-                onChange={(e) => setClubId(e.target.value)}
-                disabled={loadingClubs}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white disabled:opacity-60"
-              >
-                {loadingClubs ? (
-                  <option value="">Loading clubs...</option>
-                ) : clubs.length === 0 ? (
-                  <option value="">No clubs found</option>
-                ) : (
-                  clubs.map((club) => (
-                    <option key={club.id} value={club.id}>
-                      {club.name}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="role"
-                className="mb-2 block text-base font-semibold text-gray-900"
-              >
-                Sign in as
-              </label>
-              <select
-                id="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base font-medium text-gray-900 outline-none transition focus:border-red-600 focus:bg-white"
-              >
-                <option value="club-member">Club Member</option>
-                <option value="officer">Club Officer</option>
-                <option value="admin">Universal Admin</option>
-              </select>
-            </div>
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-red-700 px-4 py-3 text-lg font-semibold text-white transition hover:bg-red-800"
+              disabled={submitting}
+              className="w-full rounded-xl bg-red-700 px-4 py-3 text-lg font-semibold text-white transition hover:bg-red-800 disabled:opacity-60"
             >
-              Sign In
+              {submitting ? "Signing In..." : "Sign In"}
             </button>
           </form>
 
@@ -177,10 +171,7 @@ export default function SignIn() {
 
             <p className="text-lg text-gray-500">
               Don&apos;t have an account?{" "}
-              <Link
-                to="/signup"
-                className="font-medium text-red-600 hover:text-red-700"
-              >
+              <Link to="/signup" className="font-medium text-red-600 hover:text-red-700">
                 Create account
               </Link>
             </p>

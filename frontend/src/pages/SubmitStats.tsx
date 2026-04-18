@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Navbar from "../components/Navbar"
 import { getTeamById, getTeamPlayers, getTeamGames } from "../api/teams"
 import { submitStats } from "../api/stats"
@@ -33,6 +33,8 @@ export default function SubmitStats() {
   const [players, setPlayers] = useState<any[]>([])
   const [games, setGames] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   const [playerId, setPlayerId] = useState("")
   const [gameId, setGameId] = useState("")
@@ -40,10 +42,15 @@ export default function SubmitStats() {
   const [rebounds, setRebounds] = useState("")
   const [assists, setAssists] = useState("")
 
+  const role = localStorage.getItem("role")
+  const currentUserId = localStorage.getItem("userId")
+  const currentUserEmail = localStorage.getItem("email")
+
   useEffect(() => {
     if (!clubId) return
 
     setLoading(true)
+    setError("")
 
     Promise.all([
       getTeamById(clubId),
@@ -60,6 +67,7 @@ export default function SubmitStats() {
         setClub(null)
         setPlayers([])
         setGames([])
+        setError("Failed to load submit stats page.")
       })
       .finally(() => {
         setLoading(false)
@@ -68,24 +76,75 @@ export default function SubmitStats() {
 
   const statsSupported = club ? supportedStatClubs.includes(club.name) : false
 
+  const isOfficerLike = role === "officer" || role === "admin"
+
+  const availablePlayers = useMemo(() => {
+    if (isOfficerLike) return players
+
+    return players.filter((p) => {
+      const playerUserId =
+        p.user_id ??
+        p.user?.id ??
+        null
+
+      const playerUserEmail =
+        p.user_email ??
+        p.user?.email ??
+        null
+
+      if (currentUserId && playerUserId) {
+        return String(playerUserId) === String(currentUserId)
+      }
+
+      if (currentUserEmail && playerUserEmail) {
+        return String(playerUserEmail).toLowerCase() === String(currentUserEmail).toLowerCase()
+      }
+
+      return false
+    })
+  }, [players, isOfficerLike, currentUserId, currentUserEmail])
+
+  useEffect(() => {
+    if (isOfficerLike) return
+
+    if (availablePlayers.length === 1) {
+      setPlayerId(availablePlayers[0].id)
+    } else if (availablePlayers.length === 0) {
+      setPlayerId("")
+    }
+  }, [availablePlayers, isOfficerLike])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
 
-    if (!clubId || !playerId || !gameId) return
+    if (!clubId || !playerId || !gameId) {
+      setError("Please select a player and a game.")
+      return
+    }
 
-    await submitStats({
-      team_id: clubId,
-      game_id: gameId,
-      player_id: playerId,
-      sport: club.name,
-      stats: {
-        points: Number(points),
-        rebounds: Number(rebounds),
-        assists: Number(assists),
-      },
-    })
+    try {
+      setSubmitting(true)
 
-    navigate(`/clubs/${clubId}`)
+      await submitStats({
+        team_id: clubId,
+        game_id: gameId,
+        player_id: playerId,
+        sport: club.name,
+        stats: {
+          points: Number(points || 0),
+          rebounds: Number(rebounds || 0),
+          assists: Number(assists || 0),
+        },
+      })
+
+      navigate(`/clubs/${clubId}`)
+    } catch (err: any) {
+      console.error("Failed to submit stats:", err)
+      setError(err.message || "Failed to submit stats.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (loading) {
@@ -150,15 +209,23 @@ export default function SubmitStats() {
                 <select
                   value={playerId}
                   onChange={(e) => setPlayerId(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3"
+                  disabled={!isOfficerLike}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 disabled:opacity-70"
                 >
-                  <option value="">Select player</option>
-                  {players.map((p) => (
+                  <option value="">
+                    {isOfficerLike ? "Select player" : "Your player profile"}
+                  </option>
+                  {availablePlayers.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.first_name} {p.last_name}
                     </option>
                   ))}
                 </select>
+                {!isOfficerLike && availablePlayers.length === 0 && (
+                  <p className="mt-2 text-sm text-red-600">
+                    No player profile linked to your account yet.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -218,11 +285,18 @@ export default function SubmitStats() {
                 </div>
               </div>
 
+              {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="w-full rounded-xl bg-red-700 px-4 py-3 text-lg font-semibold text-white hover:bg-red-800"
+                disabled={submitting || (!isOfficerLike && availablePlayers.length === 0)}
+                className="w-full rounded-xl bg-red-700 px-4 py-3 text-lg font-semibold text-white hover:bg-red-800 disabled:opacity-60"
               >
-                Submit for Approval
+                {submitting ? "Submitting..." : "Submit for Approval"}
               </button>
             </form>
           )}

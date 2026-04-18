@@ -1,15 +1,15 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from typing import List, Annotated
+from typing import Annotated, cast
 
-from typing import cast
 from beanie import Link
+from pydantic import ValidationError
 
 from app.models.players import Player, PlayerCreate, PlayerResponse, PlayerUpdate
 from app.models.teams import Team
+from app.models.users import User
 
-from auth.auth_user import User, current_active_user
+from auth.auth_user import current_active_user
 from auth.auth_role import check_permissions_player, check_permissions_team
-from pydantic import ValidationError
 
 router = APIRouter(prefix="/players", tags=["players"])
 
@@ -36,8 +36,6 @@ async def create_player(
     current_user: Annotated[User, Depends(current_active_user)],
     payload: PlayerCreate,
 ) -> PlayerResponse:
-    linked_team: Link[Team] | None = None
-
     try:
         team = await Team.get(payload.team_id)
         if team is None:
@@ -50,17 +48,27 @@ async def create_player(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid team_id format",
         )
-    # Check permissions
+
     if not await check_permissions_team(team, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to add a player to this team",
         )
 
+    linked_user = None
+    if payload.user_id:
+        linked_user = await User.get(payload.user_id)
+        if linked_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
     player = Player(
         first_name=payload.first_name,
         last_name=payload.last_name,
         team=team,
+        user=cast(Link[User], linked_user) if linked_user else None,
         jersey_number=payload.jersey_number,
         position=payload.position,
         year=payload.year,
@@ -83,7 +91,6 @@ async def update_player(
             detail="Player not found",
         )
 
-    # Check permissions
     if not await check_permissions_player(player, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -94,12 +101,7 @@ async def update_player(
 
     if "team_id" in updates:
         team_id = updates.pop("team_id")
-        if team_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="team_id cannot be null",
-            )
-        else:
+        if team_id is not None:
             team = await Team.get(team_id)
             if team is None:
                 raise HTTPException(
@@ -107,6 +109,19 @@ async def update_player(
                     detail="Team not found",
                 )
             player.team = cast(Link[Team], team)
+
+    if "user_id" in updates:
+        user_id = updates.pop("user_id")
+        if user_id is None:
+            player.user = None
+        else:
+            linked_user = await User.get(user_id)
+            if linked_user is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User not found",
+                )
+            player.user = cast(Link[User], linked_user)
 
     for field_name, value in updates.items():
         setattr(player, field_name, value)
@@ -119,7 +134,8 @@ async def update_player(
 
 @router.delete("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_player(
-    current_user: Annotated[User, Depends(current_active_user)], player_id: str
+    current_user: Annotated[User, Depends(current_active_user)],
+    player_id: str
 ) -> None:
     player = await Player.get(player_id)
     if player is None:
@@ -128,7 +144,6 @@ async def delete_player(
             detail="Player not found",
         )
 
-    # Check permissions
     if not await check_permissions_player(player, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

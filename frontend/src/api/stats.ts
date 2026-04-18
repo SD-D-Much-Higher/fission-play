@@ -29,6 +29,11 @@ export function getPendingStats(teamId: string) {
   return apiFetch<StatSubmissionResponse[]>(`/stats/team/${teamId}/pending`)
 }
 
+export async function getApprovedStats(teamId: string) {
+  const res = await apiFetch<StatSubmissionResponse[]>(`/stats/team/${teamId}/approved`)
+  return res ?? []
+}
+
 export function approveStatSubmission(submissionId: string) {
   return apiFetch<StatSubmissionResponse>(`/stats/${submissionId}/approve`, {
     method: "PATCH",

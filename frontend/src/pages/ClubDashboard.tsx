@@ -35,24 +35,49 @@ export default function ClubDashboardPage() {
 
     setLoading(true)
 
-    Promise.all([
+    Promise.allSettled([
       getTeamById(clubId),
       getTeamPlayers(clubId),
       getTeamGames(clubId),
       getPendingStats(clubId),
     ])
-      .then(([team, players, games, pending]) => {
-        setClub(team)
-        setClubPlayers(players)
-        setClubGames(games)
-        setPendingStats(pending)
-      })
-      .catch((err) => {
-        console.error("Failed to load club dashboard:", err)
-        setClub(null)
-        setClubPlayers([])
-        setClubGames([])
-        setPendingStats([])
+      .then((results) => {
+        const [teamResult, playersResult, gamesResult, pendingResult] = results
+
+        if (teamResult.status === "rejected") {
+          console.error("Failed to load club dashboard:", teamResult.reason)
+          setClub(null)
+          setClubPlayers([])
+          setClubGames([])
+          setPendingStats([])
+          return
+        }
+
+        setClub(teamResult.value)
+
+        setClubPlayers(
+          playersResult.status === "fulfilled" ? playersResult.value : []
+        )
+
+        setClubGames(
+          gamesResult.status === "fulfilled" ? gamesResult.value : []
+        )
+
+        setPendingStats(
+          pendingResult.status === "fulfilled" ? pendingResult.value : []
+        )
+
+        if (playersResult.status === "rejected") {
+          console.error("Failed to load players:", playersResult.reason)
+        }
+
+        if (gamesResult.status === "rejected") {
+          console.error("Failed to load games:", gamesResult.reason)
+        }
+
+        if (pendingResult.status === "rejected") {
+          console.error("Failed to load pending stats:", pendingResult.reason)
+        }
       })
       .finally(() => {
         setLoading(false)
