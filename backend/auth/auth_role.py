@@ -10,12 +10,10 @@ async def check_permissions_team(
     team: Team,
     user: User,
 ):
-    if user.is_superuser:
+    if user.requested_role == "admin" or user.is_superuser:
         return True
 
-    await team.fetch_link(Team.officers)
-
-    if user in team.officers:
+    if str(user.club_id) == str(team.id):
         return True
 
     return False
@@ -28,7 +26,7 @@ async def check_permissions_player(
     player: Player,
     user: User,
 ):
-    if user.is_superuser:
+    if user.requested_role == "admin" or user.is_superuser:
         return True
 
     # player.team may already be a resolved Team object (when the player was
@@ -43,9 +41,7 @@ async def check_permissions_player(
     if team is None:
         return False
 
-    await team.fetch_link(Team.officers)
-
-    if user in team.officers:
+    if str(user.club_id) == str(team.id):
         return True
 
     return False
