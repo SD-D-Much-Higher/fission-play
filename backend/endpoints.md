@@ -26,3 +26,13 @@ POST /api/v1/games/
 PATCH /api/v1/games/{game_id}
 DELETE /api/v1/games/{game_id}
 ```
+
+Stats
+```
+POST /api/v1/stats/submit
+GET /api/v1/stats/team/{team_id}/pending
+GET /api/v1/stats/team/{team_id}/approved
+GET /api/v1/stats/player/{player_id}/approved
+PATCH /api/v1/stats/{submission_id}/approve
+PATCH /api/v1/stats/{submission_id}/reject
+```
