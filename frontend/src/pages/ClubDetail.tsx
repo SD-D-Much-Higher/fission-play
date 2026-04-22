@@ -57,7 +57,13 @@ export default function ClubDetailPage() {
   }, [clubId])
 
   const role = localStorage.getItem("role")
-  const canViewDashboard = role === "officer" || role === "admin"
+  const isSuperuser = localStorage.getItem("is_superuser") === "true"
+  const isOfficer = localStorage.getItem("is_officer") === "true"
+  const userClubId = localStorage.getItem("clubId")
+
+  // Only show club-specific actions if the user belongs to THIS club
+  const isThisClubMember = isSuperuser || userClubId === clubId
+  const canViewDashboard = isThisClubMember && (isOfficer || isSuperuser)
 
   const playerStatsMap = approvedStats.reduce(
     (acc, submission) => {
@@ -158,12 +164,14 @@ export default function ClubDetailPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Link
-                to={`/clubs/${club.id}/submit-stats`}
-                className="rounded-xl bg-red-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-800"
-              >
-                Submit Stats
-              </Link>
+              {isThisClubMember && (
+                <Link
+                  to={`/clubs/${club.id}/submit-stats`}
+                  className="rounded-xl bg-red-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-800"
+                >
+                  Submit Stats
+                </Link>
+              )}
 
               {canViewDashboard && (
                 <Link

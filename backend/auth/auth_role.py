@@ -31,7 +31,15 @@ async def check_permissions_player(
     if user.is_superuser:
         return True
 
-    team = await player.fetch_link(Player.team)
+    # player.team may already be a resolved Team object (when the player was
+    # fetched with fetch_links=True). fetch_link() returns None in that case,
+    # so we use the already-resolved value when available.
+    team = player.team if isinstance(player.team, Team) else await player.fetch_link(Player.team)
+
+    if team is None:
+        return False
+
+    await team.fetch_link(Team.officers)
 
     if user in team.officers:
         return True

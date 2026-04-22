@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routes import players, teams, games, auth, stat_submissions
+from app.routes import players, teams, games, auth, stat_submissions, officer_requests
 from app.db.database import init_db
 from app.models.users import UserRead, UserUpdate
 from auth.auth_user import fastapi_users
@@ -32,6 +32,7 @@ app.include_router(teams.router)
 app.include_router(games.router)
 app.include_router(auth.router)
 app.include_router(stat_submissions.router)
+app.include_router(officer_requests.router)
 
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),

@@ -6,6 +6,7 @@ import { apiFetch } from "../lib/api"
 type CurrentUser = {
   id: string
   email: string
+  is_superuser: boolean
   full_name?: string | null
   requested_role?: string | null
   club_id?: string | null
@@ -59,6 +60,7 @@ export default function SignIn() {
       localStorage.setItem("email", me.email)
       localStorage.setItem("userId", me.id)
       localStorage.setItem("role", me.requested_role ?? "club-member")
+      localStorage.setItem("is_superuser", String(me.is_superuser))
 
       if (me.club_id) {
         localStorage.setItem("clubId", me.club_id)
@@ -66,12 +68,27 @@ export default function SignIn() {
         localStorage.removeItem("clubId")
       }
 
-      if (me.requested_role === "admin") {
+      // Superusers are always officers. For regular officer accounts, verify
+      // the admin has approved their request (i.e. they're in team.officers).
+      let isActualOfficer = me.is_superuser
+      if (!isActualOfficer && me.requested_role === "officer" && me.club_id) {
+        try {
+          const check = await apiFetch<{ is_officer: boolean }>(
+            `/teams/${me.club_id}/am-officer`
+          )
+          isActualOfficer = check.is_officer
+        } catch {
+          isActualOfficer = false
+        }
+      }
+      localStorage.setItem("is_officer", String(isActualOfficer))
+
+      if (me.is_superuser || me.requested_role === "admin") {
         navigate("/admin")
         return
       }
 
-      if (me.requested_role === "officer" && me.club_id) {
+      if (isActualOfficer && me.club_id) {
         navigate(`/dashboard/club/${me.club_id}`)
         return
       }

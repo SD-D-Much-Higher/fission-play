@@ -109,7 +109,7 @@ export default function SignUp() {
               <input
                 id="name"
                 type="text"
-                placeholder="Alyssa Okosua"
+                placeholder="John Appleseed"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base outline-none transition focus:border-red-600 focus:bg-white"

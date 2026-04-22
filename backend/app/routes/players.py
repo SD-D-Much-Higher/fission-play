@@ -137,7 +137,7 @@ async def delete_player(
     current_user: Annotated[User, Depends(current_active_user)],
     player_id: str
 ) -> None:
-    player = await Player.get(player_id)
+    player = await Player.get(player_id, fetch_links=True)
     if player is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -8,21 +8,60 @@ import {
   rejectStatSubmission,
   type StatSubmissionResponse,
 } from "../api/stats"
+import { apiFetch } from "../lib/api"
 import { useParams } from "react-router-dom"
 
-const mockUser = {
-  id: "u1",
-  name: "Alyssa Okosua",
-  role: "officer",
+type TabKey = "overview" | "schedule" | "roster" | "team-stats" | "approval-queue"
+
+interface EditPlayerForm {
+  id: string
+  first_name: string
+  last_name: string
+  jersey_number: string
+  position: string
+  year: string
 }
 
-type TabKey = "overview" | "schedule" | "roster" | "team-stats" | "approval-queue"
+const emptyEditForm: EditPlayerForm = {
+  id: "",
+  first_name: "",
+  last_name: "",
+  jersey_number: "",
+  position: "",
+  year: "",
+}
 
 export default function ClubDashboardPage() {
   const { clubId } = useParams()
   const [activeTab, setActiveTab] = useState<TabKey>("overview")
   const [showAddGameModal, setShowAddGameModal] = useState(false)
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false)
+
+  // Add game state
+  const [addGameForm, setAddGameForm] = useState({
+    opponent_name: "",
+    date: "",
+    time: "",
+    location: "",
+  })
+  const [addGameSaving, setAddGameSaving] = useState(false)
+  const [addGameError, setAddGameError] = useState("")
+
+  // Add player state
+  const [addPlayerForm, setAddPlayerForm] = useState({
+    first_name: "",
+    last_name: "",
+    jersey_number: "",
+    position: "",
+    year: "",
+  })
+  const [addPlayerSaving, setAddPlayerSaving] = useState(false)
+  const [addPlayerError, setAddPlayerError] = useState("")
+
+  // Edit player state
+  const [editingPlayer, setEditingPlayer] = useState<EditPlayerForm | null>(null)
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState("")
 
   const [club, setClub] = useState<any>(null)
   const [clubPlayers, setClubPlayers] = useState<any[]>([])
@@ -84,7 +123,7 @@ export default function ClubDashboardPage() {
       })
   }, [clubId])
 
-  const isOfficer = mockUser.role === "officer"
+  const isOfficer = localStorage.getItem("is_officer") === "true"
 
   const upcomingGamesCount = useMemo(
     () =>
@@ -135,6 +174,138 @@ export default function ClubDashboardPage() {
       setPendingStats((prev) => prev.filter((submission) => submission.id !== id))
     } catch (err) {
       console.error("Failed to reject submission:", err)
+    }
+  }
+
+  const handleAddGame = async () => {
+    if (!clubId) return
+    if (!addGameForm.opponent_name.trim()) {
+      setAddGameError("Opponent name is required.")
+      return
+    }
+    if (!addGameForm.date) {
+      setAddGameError("Date is required.")
+      return
+    }
+    setAddGameSaving(true)
+    setAddGameError("")
+    try {
+      const gameDate = addGameForm.time
+        ? new Date(`${addGameForm.date}T${addGameForm.time}:00`).toISOString()
+        : new Date(`${addGameForm.date}T00:00:00`).toISOString()
+
+      const payload = {
+        home_team_id: clubId,
+        opponent_name: addGameForm.opponent_name.trim(),
+        game_date: gameDate,
+        location: addGameForm.location.trim() || null,
+        status: "scheduled",
+      }
+
+      const created = await apiFetch<any>("/games/", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      })
+
+      setClubGames((prev) => [...prev, created])
+      setAddGameForm({ opponent_name: "", date: "", time: "", location: "" })
+      setShowAddGameModal(false)
+    } catch (err: any) {
+      setAddGameError(err.message ?? "Failed to add game.")
+    } finally {
+      setAddGameSaving(false)
+    }
+  }
+
+  const handleAddPlayer = async () => {
+    if (!clubId) return
+    if (!addPlayerForm.first_name.trim() || !addPlayerForm.last_name.trim()) {
+      setAddPlayerError("First and last name are required.")
+      return
+    }
+    setAddPlayerSaving(true)
+    setAddPlayerError("")
+    try {
+      const payload: Record<string, any> = {
+        first_name: addPlayerForm.first_name.trim(),
+        last_name: addPlayerForm.last_name.trim(),
+        team_id: clubId,
+        position: addPlayerForm.position.trim() || null,
+        year: addPlayerForm.year.trim() || null,
+        jersey_number: addPlayerForm.jersey_number
+          ? parseInt(addPlayerForm.jersey_number)
+          : null,
+      }
+      const created = await apiFetch<any>("/players/", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      })
+      setClubPlayers((prev) => [...prev, created])
+      setAddPlayerForm({ first_name: "", last_name: "", jersey_number: "", position: "", year: "" })
+      setShowAddPlayerModal(false)
+    } catch (err: any) {
+      setAddPlayerError(err.message ?? "Failed to add player.")
+    } finally {
+      setAddPlayerSaving(false)
+    }
+  }
+
+  // Open the edit modal pre-filled with the player's current data
+  const openEditModal = (player: any) => {
+    setEditError("")
+    setEditingPlayer({
+      id: player.id,
+      first_name: player.first_name ?? "",
+      last_name: player.last_name ?? "",
+      jersey_number: player.jersey_number != null ? String(player.jersey_number) : "",
+      position: player.position ?? "",
+      year: player.year ?? "",
+    })
+  }
+
+  const handleEditSave = async () => {
+    if (!editingPlayer) return
+    setEditSaving(true)
+    setEditError("")
+
+    try {
+      const payload: Record<string, any> = {
+        first_name: editingPlayer.first_name,
+        last_name: editingPlayer.last_name,
+        position: editingPlayer.position || null,
+        year: editingPlayer.year || null,
+        jersey_number: editingPlayer.jersey_number
+          ? parseInt(editingPlayer.jersey_number)
+          : null,
+      }
+
+      const updated = await apiFetch<any>(`/players/${editingPlayer.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      })
+
+      // Update local state so the table reflects the change immediately
+      setClubPlayers((prev) =>
+        prev.map((p) => (p.id === editingPlayer.id ? { ...p, ...updated } : p))
+      )
+
+      setEditingPlayer(null)
+    } catch (err: any) {
+      setEditError(err.message ?? "Failed to save changes.")
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  const handleDeletePlayer = async (playerId: string, playerName: string) => {
+    if (!window.confirm(`Remove ${playerName} from the roster?`)) return
+
+    try {
+      await apiFetch(`/players/${playerId}`, { method: "DELETE" })
+      setClubPlayers((prev) => prev.filter((p) => p.id !== playerId))
+    } catch (err: any) {
+      console.error("Failed to delete player:", err)
+      alert(err.message ?? "Failed to delete player.")
     }
   }
 
@@ -369,10 +540,23 @@ export default function ClubDashboardPage() {
                         {isOfficer && (
                           <td className="px-4 py-3">
                             <div className="flex gap-2">
-                              <button className="rounded-lg p-2 hover:bg-gray-100">
+                              <button
+                                onClick={() => openEditModal(player)}
+                                className="rounded-lg p-2 hover:bg-gray-100"
+                                title="Edit player"
+                              >
                                 <Edit className="h-4 w-4" />
                               </button>
-                              <button className="rounded-lg p-2 hover:bg-gray-100">
+                              <button
+                                onClick={() =>
+                                  handleDeletePlayer(
+                                    player.id,
+                                    `${player.first_name} ${player.last_name}`
+                                  )
+                                }
+                                className="rounded-lg p-2 hover:bg-gray-100"
+                                title="Remove player"
+                              >
                                 <Trash2 className="h-4 w-4 text-red-600" />
                               </button>
                             </div>
@@ -460,50 +644,301 @@ export default function ClubDashboardPage() {
         )}
       </div>
 
+      {/* ── Add Game Modal ── */}
       {showAddGameModal && (
-        <SimpleModal
-          title="Add New Game"
-          description="Schedule a new game for your club"
-          onClose={() => setShowAddGameModal(false)}
-        >
-          <div className="space-y-4">
-            <FormField label="Opponent" id="opponent" placeholder="Team name" />
-            <FormField label="Date" id="date" type="date" />
-            <FormField label="Time" id="time" type="time" />
-            <FormField label="Location" id="location" placeholder="Venue" />
-            <button
-              onClick={() => setShowAddGameModal(false)}
-              className="w-full rounded-xl bg-red-700 px-4 py-3 font-semibold text-white hover:bg-red-800"
-            >
-              Add Game
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">Add New Game</h3>
+                <p className="mt-1 text-sm text-gray-500">Schedule a new game for your club</p>
+              </div>
+              <button
+                onClick={() => { setShowAddGameModal(false); setAddGameError("") }}
+                className="rounded-lg px-2 py-1 text-gray-500 hover:bg-gray-100"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-900">Opponent</label>
+                <input
+                  value={addGameForm.opponent_name}
+                  onChange={(e) => setAddGameForm((p) => ({ ...p, opponent_name: e.target.value }))}
+                  placeholder="e.g. Union Club Soccer"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-gray-900">Date</label>
+                  <input
+                    type="date"
+                    value={addGameForm.date}
+                    onChange={(e) => setAddGameForm((p) => ({ ...p, date: e.target.value }))}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-gray-900">Time</label>
+                  <input
+                    type="time"
+                    value={addGameForm.time}
+                    onChange={(e) => setAddGameForm((p) => ({ ...p, time: e.target.value }))}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-900">Location</label>
+                <input
+                  value={addGameForm.location}
+                  onChange={(e) => setAddGameForm((p) => ({ ...p, location: e.target.value }))}
+                  placeholder="e.g. RPI Harkness Field"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                />
+              </div>
+
+              {addGameError && (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {addGameError}
+                </p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => { setShowAddGameModal(false); setAddGameError("") }}
+                  className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddGame}
+                  disabled={addGameSaving}
+                  className="flex-1 rounded-xl bg-red-700 px-4 py-3 font-semibold text-white hover:bg-red-800 disabled:opacity-60"
+                >
+                  {addGameSaving ? "Adding…" : "Add Game"}
+                </button>
+              </div>
+            </div>
           </div>
-        </SimpleModal>
+        </div>
       )}
 
+      {/* ── Add Player Modal ── */}
       {showAddPlayerModal && (
-        <SimpleModal
-          title="Add Player"
-          description="Add a new player to the active roster"
-          onClose={() => setShowAddPlayerModal(false)}
-        >
-          <div className="space-y-4">
-            <FormField label="First Name" id="firstName" placeholder="First name" />
-            <FormField label="Last Name" id="lastName" placeholder="Last name" />
-            <FormField label="Jersey Number" id="number" type="number" placeholder="12" />
-            <FormField
-              label="Position"
-              id="position"
-              placeholder="Guard / Forward / Center"
-            />
-            <button
-              onClick={() => setShowAddPlayerModal(false)}
-              className="w-full rounded-xl bg-red-700 px-4 py-3 font-semibold text-white hover:bg-red-800"
-            >
-              Add Player
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">Add Player</h3>
+                <p className="mt-1 text-sm text-gray-500">Add a new player to the active roster</p>
+              </div>
+              <button
+                onClick={() => { setShowAddPlayerModal(false); setAddPlayerError("") }}
+                className="rounded-lg px-2 py-1 text-gray-500 hover:bg-gray-100"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-gray-900">First Name</label>
+                  <input
+                    value={addPlayerForm.first_name}
+                    onChange={(e) => setAddPlayerForm((p) => ({ ...p, first_name: e.target.value }))}
+                    placeholder="First name"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-gray-900">Last Name</label>
+                  <input
+                    value={addPlayerForm.last_name}
+                    onChange={(e) => setAddPlayerForm((p) => ({ ...p, last_name: e.target.value }))}
+                    placeholder="Last name"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-900">Jersey Number</label>
+                <input
+                  type="number"
+                  value={addPlayerForm.jersey_number}
+                  onChange={(e) => setAddPlayerForm((p) => ({ ...p, jersey_number: e.target.value }))}
+                  placeholder="e.g. 12"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-900">Position</label>
+                <input
+                  value={addPlayerForm.position}
+                  onChange={(e) => setAddPlayerForm((p) => ({ ...p, position: e.target.value }))}
+                  placeholder="e.g. Forward"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-900">Year</label>
+                <input
+                  value={addPlayerForm.year}
+                  onChange={(e) => setAddPlayerForm((p) => ({ ...p, year: e.target.value }))}
+                  placeholder="e.g. Junior"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                />
+              </div>
+
+              {addPlayerError && (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {addPlayerError}
+                </p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => { setShowAddPlayerModal(false); setAddPlayerError("") }}
+                  className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddPlayer}
+                  disabled={addPlayerSaving}
+                  className="flex-1 rounded-xl bg-red-700 px-4 py-3 font-semibold text-white hover:bg-red-800 disabled:opacity-60"
+                >
+                  {addPlayerSaving ? "Adding…" : "Add Player"}
+                </button>
+              </div>
+            </div>
           </div>
-        </SimpleModal>
+        </div>
+      )}
+
+      {/* ── Edit Player Modal ── */}
+      {editingPlayer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">Edit Player</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Update roster details for this player
+                </p>
+              </div>
+              <button
+                onClick={() => setEditingPlayer(null)}
+                className="rounded-lg px-2 py-1 text-gray-500 hover:bg-gray-100"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-gray-900">
+                    First Name
+                  </label>
+                  <input
+                    value={editingPlayer.first_name}
+                    onChange={(e) =>
+                      setEditingPlayer((p) => p && { ...p, first_name: e.target.value })
+                    }
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-gray-900">
+                    Last Name
+                  </label>
+                  <input
+                    value={editingPlayer.last_name}
+                    onChange={(e) =>
+                      setEditingPlayer((p) => p && { ...p, last_name: e.target.value })
+                    }
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-900">
+                  Jersey Number
+                </label>
+                <input
+                  type="number"
+                  value={editingPlayer.jersey_number}
+                  onChange={(e) =>
+                    setEditingPlayer((p) => p && { ...p, jersey_number: e.target.value })
+                  }
+                  placeholder="e.g. 12"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-900">
+                  Position
+                </label>
+                <input
+                  value={editingPlayer.position}
+                  onChange={(e) =>
+                    setEditingPlayer((p) => p && { ...p, position: e.target.value })
+                  }
+                  placeholder="e.g. Forward"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-gray-900">
+                  Year
+                </label>
+                <input
+                  value={editingPlayer.year}
+                  onChange={(e) =>
+                    setEditingPlayer((p) => p && { ...p, year: e.target.value })
+                  }
+                  placeholder="e.g. Junior"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-red-600 focus:bg-white"
+                />
+              </div>
+
+              {editError && (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {editError}
+                </p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setEditingPlayer(null)}
+                  className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditSave}
+                  disabled={editSaving}
+                  className="flex-1 rounded-xl bg-red-700 px-4 py-3 font-semibold text-white hover:bg-red-800 disabled:opacity-60"
+                >
+                  {editSaving ? "Saving…" : "Save Changes"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

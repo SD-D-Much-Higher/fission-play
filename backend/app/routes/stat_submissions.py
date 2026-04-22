@@ -89,7 +89,7 @@ async def get_pending_submissions(team_id: str) -> list[StatSubmissionResponse]:
         await submission.fetch_all_links()
         if str(submission.team.id) == team_id:  # type: ignore
             filtered.append(submission)
-        return [await StatSubmissionResponse.from_document(s) for s in filtered]
+    return [await StatSubmissionResponse.from_document(s) for s in filtered]
 
 
 @router.get(

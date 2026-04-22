@@ -8,6 +8,7 @@ from auth.auth_user import auth_backend, fastapi_users, get_user_manager
 from app.models.users import UserRead, UserCreate, UserUpdate, User
 from app.models.teams import Team
 from app.models.players import Player
+from app.models.officer_request import OfficerRequest
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -99,6 +100,16 @@ async def register_user(
                 user=cast(Link[User], user),
             )
             await new_player.insert()
+
+    # When someone requests officer access, create a pending OfficerRequest
+    # for an admin to review and approve.
+    if payload.requested_role == "officer" and team is not None:
+        officer_request = OfficerRequest(
+            user=cast(Link[User], user),
+            team=cast(Link[Team], team),
+            full_name=payload.full_name,
+        )
+        await officer_request.insert()
 
     return UserRead(
         id=user.id,
