@@ -27,9 +27,7 @@ async def list_officer_requests(
     """Return all pending officer requests. Admin only."""
     _require_admin(current_user)
 
-    requests = await OfficerRequest.find(
-        OfficerRequest.status == "pending"
-    ).to_list()
+    requests = await OfficerRequest.find(OfficerRequest.status == "pending").to_list()
 
     return [await OfficerRequestResponse.from_document(r) for r in requests]
 

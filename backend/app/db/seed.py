@@ -39,6 +39,7 @@ async def seed_database():
         sport="Soccer",
         description="Competitive club soccer team at RPI.",
         coach_name="Coach Daniels",
+        players=[],
     )
 
     basketball = Team(
@@ -46,6 +47,7 @@ async def seed_database():
         sport="Basketball",
         description="Club basketball team representing RPI.",
         coach_name="Coach Nguyen",
+        players=[],
     )
 
     volleyball = Team(
@@ -53,6 +55,7 @@ async def seed_database():
         sport="Volleyball",
         description="RPI club volleyball team.",
         coach_name="Coach Carter",
+        players=[],
     )
 
     await soccer.insert()

@@ -40,9 +40,11 @@ app.include_router(
     tags=["users"],
 )
 
+
 @app.on_event("startup")
 async def start_db():
     await init_db()
+
 
 @app.get("/")
 def root():

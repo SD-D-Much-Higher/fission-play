@@ -134,8 +134,7 @@ async def update_player(
 
 @router.delete("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_player(
-    current_user: Annotated[User, Depends(current_active_user)],
-    player_id: str
+    current_user: Annotated[User, Depends(current_active_user)], player_id: str
 ) -> None:
     player = await Player.get(player_id, fetch_links=True)
     if player is None:

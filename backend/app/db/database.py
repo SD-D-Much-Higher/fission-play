@@ -31,5 +31,5 @@ async def init_db():
 
     await init_beanie(
         database=client[db_name],
-        document_models=[Player, Team, Game, User, StatSubmission, OfficerRequest]
+        document_models=[Player, Team, Game, User, StatSubmission, OfficerRequest],
     )

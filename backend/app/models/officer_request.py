@@ -13,9 +13,7 @@ class OfficerRequest(Document):
     team: Link[Team]
     full_name: str
     status: str = "pending"  # pending | approved | rejected
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Settings:
         name = "officer_requests"
