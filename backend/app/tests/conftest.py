@@ -2,14 +2,16 @@
 
 import pytest
 import pytest_asyncio
+from datetime import datetime, timezone
 from httpx import ASGITransport, AsyncClient
 from pymongo import AsyncMongoClient
 from beanie import init_beanie
 
 from main import app
-from app.models.teams import Team
-from app.models.players import Player
-from app.models.games import Game
+from app.models.teams import Team, TeamCreate
+from app.models.players import Player, PlayerCreate
+from app.models.games import Game, GameCreate
+from app.models.users import UserCreate
 
 from app.db.database import User
 
@@ -51,53 +53,58 @@ def test_user():
 
 
 @pytest.fixture(scope="module")
-def test_superuser():
-    return {
-        "username": "admin@example.com",
-        "password": "adminpassword1",
-        "is_superuser": True,
-    }
+def test_user_admin():
+    return UserCreate(
+        email="admin@example.com",
+        full_name="Admin User",
+        password="adminpassword1",
+        is_superuser=True,
+        requested_role="admin",
+    )
 
 
 @pytest.fixture(scope="module")
 def test_team():
-    return {
-        "name": "Test Team",
-        "sport": "Soccer",
-        "description": "A team for testing purposes",
-        "school": "Test University",
-        "coach_name": "Test Coach",
-    }
+    return TeamCreate(
+        name="Test Team",
+        sport="Soccer",
+        description="A team for testing purposes",
+        school="Test University",
+        coach_name="Test Coach",
+    )
 
 
 @pytest.fixture(scope="module")
 def test_team2():
-    return {
-        "name": "Test Team 2",
-        "sport": "Soccer",
-        "description": "Another team for testing purposes",
-        "school": "Test University",
-        "coach_name": "Test Coach 2",
-    }
+    return TeamCreate(
+        name="Test Team 2",
+        sport="Soccer",
+        description="Another team for testing purposes",
+        school="Test University",
+        coach_name="Test Coach 2",
+    )
 
 
 @pytest.fixture(scope="module")
 def test_game():
-    return {
-        "game_date": "2024-10-01T15:00:00Z",
-        "location": "Test Stadium",
-        "home_score": 0,
-        "away_score": 0,
-        "status": "scheduled",
-    }
+    return GameCreate(
+        home_team_id="home_team_id_placeholder",
+        away_team_id="away_team_id_placeholder",
+        game_date=datetime(2024, 10, 1, 15, 0, 0, tzinfo=timezone.utc),
+        location="Test Stadium",
+        home_score=0,
+        away_score=0,
+        status="scheduled",
+    )
 
 
 @pytest.fixture(scope="module")
 def test_player():
-    return {
-        "first_name": "John",
-        "last_name": "Doe",
-        "jersey_number": 10,
-        "position": "Forward",
-        "year": "Senior",
-    }
+    return PlayerCreate(
+        first_name="John",
+        last_name="Doe",
+        jersey_number=10,
+        position="Forward",
+        year="Senior",
+        team_id="team_id_placeholder",
+    )
