@@ -7,17 +7,9 @@ from app.models.officer_request import OfficerRequest, OfficerRequestResponse
 from app.models.teams import Team
 from app.models.users import User
 from auth.auth_user import current_active_user
+from auth.auth_role import check_admin
 
 router = APIRouter(prefix="/officer-requests", tags=["officer-requests"])
-
-
-def _require_admin(current_user: User) -> User:
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
-        )
-    return current_user
 
 
 @router.get("/", response_model=list[OfficerRequestResponse])
@@ -25,7 +17,11 @@ async def list_officer_requests(
     current_user: Annotated[User, Depends(current_active_user)],
 ) -> list[OfficerRequestResponse]:
     """Return all pending officer requests. Admin only."""
-    _require_admin(current_user)
+    if not await check_admin(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
 
     requests = await OfficerRequest.find(OfficerRequest.status == "pending").to_list()
 
@@ -41,7 +37,11 @@ async def approve_officer_request(
     current_user: Annotated[User, Depends(current_active_user)],
 ) -> OfficerRequestResponse:
     """Approve a pending officer request. Adds the user to team.officers."""
-    _require_admin(current_user)
+    if not await check_admin(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
 
     req = await OfficerRequest.get(request_id, fetch_links=True)
     if req is None:
@@ -75,7 +75,11 @@ async def reject_officer_request(
     current_user: Annotated[User, Depends(current_active_user)],
 ) -> OfficerRequestResponse:
     """Reject a pending officer request."""
-    _require_admin(current_user)
+    if not await check_admin(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
 
     req = await OfficerRequest.get(request_id)
     if req is None:
