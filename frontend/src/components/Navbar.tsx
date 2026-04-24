@@ -5,6 +5,7 @@ import { searchPlayers, searchTeams } from "../services/searchService"
 import type { TeamSearchItem, PlayerSearchItem } from "../services/searchService"
 import { getTeams } from "../api/teams"
 import { apiFetch } from "../lib/api"
+import logo from "../assets/fp-low-qual.png"
 
 interface RawPlayer {
   id: string
@@ -67,7 +68,7 @@ export default function Navbar() {
   return (
     <header className="fixed top-0 left-0 z-50 w-full max-w-full flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-8 py-4">
       <Link to="/" className="flex items-center gap-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-700 font-bold text-white">F</div>
+        <img src={logo} alt="Fission Play logo" className="h-10 w-10" />
         <h1 className="text-2xl font-bold text-gray-900">Fission Play</h1>
       </Link>
 
