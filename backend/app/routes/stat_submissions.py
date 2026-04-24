@@ -87,9 +87,17 @@ async def get_pending_submissions(team_id: str) -> list[StatSubmissionResponse]:
     filtered = []
     for submission in submissions:
         await submission.fetch_all_links()
-        if str(submission.team.id) == team_id:  # type: ignore
+        if not isinstance(submission.team, Team):
+            continue
+        if str(submission.team.id) == team_id:
             filtered.append(submission)
-    return [await StatSubmissionResponse.from_document(s) for s in filtered]
+
+    results = []
+    for s in filtered:
+        response = await StatSubmissionResponse.from_document(s)
+        if response is not None:
+            results.append(response)
+    return results
 
 
 @router.get(
@@ -109,10 +117,17 @@ async def get_approved_submissions(team_id: str) -> list[StatSubmissionResponse]
     filtered = []
     for submission in submissions:
         await submission.fetch_all_links()
-        if str(submission.team.id) == team_id:  # type: ignore
+        if not isinstance(submission.team, Team):
+            continue
+        if str(submission.team.id) == team_id:
             filtered.append(submission)
 
-    return [await StatSubmissionResponse.from_document(s) for s in filtered]
+    results = []
+    for s in filtered:
+        response = await StatSubmissionResponse.from_document(s)
+        if response is not None:
+            results.append(response)
+    return results
 
 
 @router.patch(
