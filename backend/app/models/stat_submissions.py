@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import Any, cast
 
 from beanie import Document, Link
+from typing import Optional
 from pydantic import BaseModel, Field
 
 from app.models.teams import Team
@@ -14,7 +15,7 @@ class StatSubmission(Document):
     team: Link[Team]
     game: Link[Game]
     player: Link[Player]
-    submitted_by: Link[User]
+    submitted_by: Optional[Link[User]] = None
     sport: str
     stats: dict[str, Any]
     status: str = "pending"

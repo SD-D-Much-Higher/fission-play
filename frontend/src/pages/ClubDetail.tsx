@@ -9,14 +9,85 @@ import {
 
 type TabKey = "schedule" | "roster" | "player-stats" | "team-stats"
 
-type AggregatedPlayerStat = {
-  player_id: string
-  player_name: string
-  games: number
-  points: number
-  rebounds: number
-  assists: number
+interface StatColumn { key: string; label: string }
+
+function getStatColumns(clubName: string): StatColumn[] {
+  const name = clubName.toLowerCase()
+  if (name.includes("basketball")) return [
+    { key: "points", label: "PTS" }, { key: "rebounds", label: "REB" },
+    { key: "assists", label: "AST" }, { key: "steals", label: "STL" }, { key: "blocks", label: "BLK" },
+  ]
+  if (name.includes("soccer")) return [
+    { key: "goals", label: "Goals" }, { key: "assists", label: "Assists" },
+    { key: "shots_on_goal", label: "Shots" }, { key: "saves", label: "Saves" },
+  ]
+  if (name.includes("volleyball")) return [
+    { key: "kills", label: "Kills" }, { key: "assists", label: "Assists" },
+    { key: "digs", label: "Digs" }, { key: "blocks", label: "Blocks" }, { key: "aces", label: "Aces" },
+  ]
+  if (name.includes("hockey")) return [
+    { key: "goals", label: "Goals" }, { key: "assists", label: "Assists" },
+    { key: "shots", label: "Shots" }, { key: "saves", label: "Saves" }, { key: "penalty_minutes", label: "PIM" },
+  ]
+  if (name.includes("rugby")) return [
+    { key: "tries", label: "Tries" }, { key: "conversions", label: "Conv." },
+    { key: "tackles", label: "Tackles" }, { key: "carries", label: "Carries" },
+  ]
+  if (name.includes("baseball")) return [
+    { key: "hits", label: "H" }, { key: "runs", label: "R" },
+    { key: "rbis", label: "RBI" }, { key: "strikeouts", label: "K" }, { key: "era", label: "ERA" },
+  ]
+  if (name.includes("swim")) return [
+    { key: "event", label: "Event" }, { key: "time_seconds", label: "Time (s)" },
+  ]
+  if (name.includes("water polo")) return [
+    { key: "goals", label: "Goals" }, { key: "assists", label: "Assists" },
+    { key: "saves", label: "Saves" }, { key: "steals", label: "Steals" },
+  ]
+  if (name.includes("ultimate") || name.includes("frisbee")) return [
+    { key: "goals", label: "Goals" }, { key: "assists", label: "Assists" },
+    { key: "blocks", label: "Blocks" }, { key: "turnovers", label: "TO" },
+  ]
+  if (name.includes("wrestling") || name.includes("judo") || name.includes("boxing") ||
+      name.includes("tae kwon") || name.includes("kendo") || name.includes("fencing") ||
+      name.includes("badminton") || name.includes("racquetball")) return [
+    { key: "wins", label: "Wins" }, { key: "losses", label: "Losses" }, { key: "points_scored", label: "Pts" },
+  ]
+  return [{ key: "points", label: "Points" }, { key: "assists", label: "Assists" }]
 }
+
+type AggregatedPlayerStat = {
+  player_id: string; player_name: string; games: number; [key: string]: string | number
+}
+
+function getBannerUrl(sport: string): string {
+  const s = sport.toLowerCase()
+  if (s.includes("soccer") || s.includes("football")) return "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1600&q=80"
+  if (s.includes("basketball")) return "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1600&q=80"
+  if (s.includes("volleyball")) return "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=1600&q=80"
+  if (s.includes("ice hockey") || s.includes("hockey")) return "https://images.unsplash.com/photo-1515703407324-5f753afd8be8?w=1600&q=80"
+  if (s.includes("baseball")) return "https://images.unsplash.com/photo-1508344928928-7165b67de128?w=1600&q=80"
+  if (s.includes("swimming") || s.includes("swim")) return "https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=1600&q=80"
+  if (s.includes("rowing") || s.includes("crew")) return "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&q=80"
+  if (s.includes("rugby")) return "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80"
+  if (s.includes("tennis") || s.includes("badminton") || s.includes("racquet")) return "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1600&q=80"
+  if (s.includes("cycling")) return "https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1600&q=80"
+  if (s.includes("skiing") || s.includes("snowboard")) return "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1600&q=80"
+  if (s.includes("wrestling") || s.includes("judo") || s.includes("boxing") ||
+      s.includes("taekwondo") || s.includes("tae kwon") || s.includes("martial")) return "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=1600&q=80"
+  if (s.includes("fencing")) return "https://images.unsplash.com/photo-1601645191163-3fc0d5d64e35?w=1600&q=80"
+  if (s.includes("water polo")) return "https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=1600&q=80"
+  if (s.includes("frisbee") || s.includes("ultimate")) return "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1600&q=80"
+  if (s.includes("dance")) return "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1600&q=80"
+  if (s.includes("equestrian") || s.includes("horse")) return "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=1600&q=80"
+  if (s.includes("weightlift") || s.includes("weight")) return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600&q=80"
+  if (s.includes("esport") || s.includes("gaming")) return "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&q=80"
+  if (s.includes("outdoor") || s.includes("hiking") || s.includes("outing")) return "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1600&q=80"
+  if (s.includes("bhangra") || s.includes("cultural")) return "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1600&q=80"
+  // default
+  return "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1600&q=80"
+}
+
 
 export default function ClubDetailPage() {
   const { clubId } = useParams()
@@ -65,22 +136,21 @@ export default function ClubDetailPage() {
   const isThisClubMember = isSuperuser || userClubId === clubId
   const canViewDashboard = isThisClubMember && (isOfficer || isSuperuser)
 
+  const statColumns = club ? getStatColumns(club.name) : []
+
   const playerStatsMap = approvedStats.reduce(
     (acc, submission) => {
       const existing = acc[submission.player_id] ?? {
         player_id: submission.player_id,
         player_name: submission.player_name,
         games: 0,
-        points: 0,
-        rebounds: 0,
-        assists: 0,
       }
-
       existing.games += 1
-      existing.points += Number(submission.stats.points ?? 0)
-      existing.rebounds += Number(submission.stats.rebounds ?? 0)
-      existing.assists += Number(submission.stats.assists ?? 0)
-
+      for (const col of statColumns) {
+        const val = submission.stats[col.key]
+        if (col.key === "event") { existing[col.key] = val ?? "-" }
+        else { existing[col.key] = Number(existing[col.key] ?? 0) + Number(val ?? 0) }
+      }
       acc[submission.player_id] = existing
       return acc
     },
@@ -90,19 +160,16 @@ export default function ClubDetailPage() {
   const playerStatsList = Object.values(playerStatsMap)
 
   const teamStats = approvedStats.reduce(
-    (acc, submission) => {
-      acc.games += 1
-      acc.points += Number(submission.stats.points ?? 0)
-      acc.rebounds += Number(submission.stats.rebounds ?? 0)
-      acc.assists += Number(submission.stats.assists ?? 0)
+    (acc: Record<string, number>, submission) => {
+      acc.games = (acc.games ?? 0) + 1
+      for (const col of statColumns) {
+        if (col.key !== "event") {
+          acc[col.key] = (acc[col.key] ?? 0) + Number(submission.stats[col.key] ?? 0)
+        }
+      }
       return acc
     },
-    {
-      games: 0,
-      points: 0,
-      rebounds: 0,
-      assists: 0,
-    }
+    { games: 0 }
   )
 
   if (loading) {
@@ -140,9 +207,12 @@ export default function ClubDetailPage() {
       <Navbar />
 
       <div className="relative h-64 overflow-hidden">
-        <div className="flex h-full w-full items-center justify-center bg-gray-300 text-gray-500">
-          No Image
-        </div>
+        <img
+          src={club ? getBannerUrl(club.sport) : ""}
+          alt={club?.name ?? "Club banner"}
+          className="h-full w-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       </div>
 
@@ -319,9 +389,9 @@ export default function ClubDetailPage() {
                     <tr>
                       <th className="px-4 py-3">Player</th>
                       <th className="px-4 py-3">Games</th>
-                      <th className="px-4 py-3">Points</th>
-                      <th className="px-4 py-3">Rebounds</th>
-                      <th className="px-4 py-3">Assists</th>
+                      {statColumns.map((col) => (
+                        <th key={col.key} className="px-4 py-3">{col.label}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
@@ -331,9 +401,9 @@ export default function ClubDetailPage() {
                           {player.player_name}
                         </td>
                         <td className="px-4 py-3">{player.games}</td>
-                        <td className="px-4 py-3">{player.points}</td>
-                        <td className="px-4 py-3">{player.rebounds}</td>
-                        <td className="px-4 py-3">{player.assists}</td>
+                        {statColumns.map((col) => (
+                          <td key={col.key} className="px-4 py-3">{player[col.key] ?? "-"}</td>
+                        ))}
                       </tr>
                     ))}
                   </tbody>
@@ -348,23 +418,13 @@ export default function ClubDetailPage() {
             {approvedStats.length === 0 ? (
               <p className="text-gray-500">No approved team stats yet.</p>
             ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <p className="text-sm text-gray-500">Approved Entries</p>
-                  <p className="text-2xl font-bold text-gray-900">{teamStats.games}</p>
-                </div>
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <p className="text-sm text-gray-500">Total Points</p>
-                  <p className="text-2xl font-bold text-gray-900">{teamStats.points}</p>
-                </div>
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <p className="text-sm text-gray-500">Total Rebounds</p>
-                  <p className="text-2xl font-bold text-gray-900">{teamStats.rebounds}</p>
-                </div>
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <p className="text-sm text-gray-500">Total Assists</p>
-                  <p className="text-2xl font-bold text-gray-900">{teamStats.assists}</p>
-                </div>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                {statColumns.filter((col) => col.key !== "event").map((col) => (
+                  <div key={col.key} className="rounded-xl border border-gray-200 p-4">
+                    <p className="text-sm text-gray-500">Total {col.label}</p>
+                    <p className="text-2xl font-bold text-gray-900">{teamStats[col.key] ?? 0}</p>
+                  </div>
+                ))}
               </div>
             )}
           </SectionCard>
