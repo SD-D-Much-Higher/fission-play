@@ -9,6 +9,7 @@ import RequestSubmitted from "../pages/RequestSubmitted"
 import Unauthorized from "../pages/Unauthorized"
 import SubmitStats from "../pages/SubmitStats"
 import AdminDashboard from "../pages/AdminDashboard"
+import PlayerDetail from "../pages/PlayerDetail"
 
 export default function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ export default function AppRoutes() {
         <Route path="/clubs/:clubId/submit-stats" element={<SubmitStats />} />
         <Route path="/dashboard/club/:clubId" element={<ClubDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/players/:playerId" element={<PlayerDetail />} />
       </Routes>
     </BrowserRouter>
   )

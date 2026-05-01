@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
 
 from beanie import Document, Link
+from typing import Optional
 from pydantic import BaseModel, Field
 
 from app.models.teams import Team
@@ -14,7 +15,7 @@ class StatSubmission(Document):
     team: Link[Team]
     game: Link[Game]
     player: Link[Player]
-    submitted_by: Link[User]
+    submitted_by: Optional[Link[User]] = None
     sport: str
     stats: dict[str, Any]
     status: str = "pending"
@@ -47,15 +48,34 @@ class StatSubmissionResponse(BaseModel):
     @classmethod
     async def from_document(
         cls, submission: StatSubmission
-    ) -> "StatSubmissionResponse":
+    ) -> "StatSubmissionResponse | None":
         await submission.fetch_all_links()
+
+        team = (
+            submission.team
+            if isinstance(submission.team, Team)
+            else await submission.fetch_link(StatSubmission.team)
+        )
+        player = (
+            submission.player
+            if isinstance(submission.player, Player)
+            else await submission.fetch_link(StatSubmission.player)
+        )
+
+        # If either link resolved to None, the referenced document was deleted —
+        # return None so the caller can skip this submission cleanly.
+        if team is None or player is None:
+            return None
+
+        team = cast(Team, team)
+        player = cast(Player, player)
 
         return cls(
             id=str(submission.id),
-            team_id=str(submission.team.id),  # type: ignore
-            team_name=submission.team.name,  # type: ignore
-            player_id=str(submission.player.id),  # type: ignore
-            player_name=f"{submission.player.first_name} {submission.player.last_name}",  # type: ignore
+            team_id=str(team.id),
+            team_name=team.name,
+            player_id=str(player.id),
+            player_name=f"{player.first_name} {player.last_name}",
             sport=submission.sport,
             stats=submission.stats,
             status=submission.status,
