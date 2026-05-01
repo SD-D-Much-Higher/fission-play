@@ -60,7 +60,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <main className="mx-auto max-w-6xl px-4 py-12">
+      <main className="mx-auto max-w-6xl px-4 pt-28 pb-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="mt-3 text-lg text-gray-500">
